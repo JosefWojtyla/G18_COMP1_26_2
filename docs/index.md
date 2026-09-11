@@ -8,6 +8,15 @@ Este projeto tem como objetivo documentar o processo de construção de um compi
 
 Ao longo do desenvolvimento serão abordados aspectos relacionados à análise léxica, análise sintática, análise semântica e demais componentes necessários para a construção do compilador.
 
+## Índice
+
+| Seção | Descrição |
+|---|---|
+| [**Compilador**](compilador/linguagem-e-escopo.md) | Informações gerais e decisões técnicas |
+| [**Planejamento**](planejamento/visao-geral.md) | Organização do desenvolvimento e acompanhamento das sprints |
+| [**Pontos de controle**](entregas/entrega-01.md) | Registro das entregas realizadas durante o projeto |
+|**Entrega final**| Ainda em desenvolvimento.|
+
 ## Objetivos
 
 - Projetar e implementar um compilador funcional;
@@ -16,10 +25,26 @@ Ao longo do desenvolvimento serão abordados aspectos relacionados à análise l
 - Organizar o desenvolvimento por meio de sprints e planejamento incremental;
 - Registrar as entregas e a evolução do projeto.
 
-## Estrutura da documentação
+## Integrantes
 
-| Seção | Descrição |
-|---|---|
-| **Projeto** | Informações gerais, integrantes e decisões técnicas |
-| **Planejamento** | Organização do desenvolvimento e acompanhamento das sprints |
-| **Entregas** | Registro das entregas realizadas durante o projeto |
+<div class="equipe-grid">
+
+<div class="membro">
+<img src="https://github.com/JosefWojtyla.png" alt="Josef Wojtyla">
+<h3><a href="https://github.com/JosefWojtyla" target="_blank">Josef Wojtyla</a></h3>
+<p><strong>Matrícula:</strong> 251023282</p>
+</div>
+
+<div class="membro">
+<img src="https://github.com/gabriel-octacilio.png" alt="Gabriel">
+<h3><a href="https://github.com/">Gabriel</a></h3>
+<p><strong>Matrícula:</strong> </p>
+</div>
+
+<div class="membro">
+<img src="https://github.com/Zayra-Moraes.png" alt="Zayra">
+<h3><a href="https://github.com/Zayra-Moraes">Zayra</a></h3>
+<p><strong>Matrícula:</strong> 242015989</p>
+</div>
+
+</div>

@@ -22,32 +22,35 @@ theme:
     text: Roboto
     code: Roboto Mono
 
-
+extra_css:
+  - stylesheets/extra.css
 
 nav:
   - Início: index.md
 
   - Compilador:
-      - linguagem e Escopo: linguagem-e-escopo.md
-      - Análise Léxica: analise-lexica.md
-      - Análise Sintática: analise-sintatica.md
-      - Análise Semântica: analise-semantica.md
-      - Código Intermediário: codigo-intermediario.md
-      - Código final: codigo-final.md
-      - Decisões: decisoes.md
+      - linguagem e Escopo: compilador/linguagem-e-escopo.md
+      - Análise Léxica: compilador/analise-lexica.md
+      - Análise Sintática: compilador/analise-sintatica.md
+      - Análise Semântica: compilador/analise-semantica.md
+      - Código Intermediário: compilador/codigo-intermediario.md
+      - Código final: compilador/codigo-final.md
+      # - Decisões: decisoes.md
 
 
   - Planejamento:
-      - Visão geral: planejamento.md
+      - Visão geral: planejamento/visao-geral.md
       - Sprints:
-          - Sprint 01: sprints/sprint-01.md
-          - Sprint 02: sprints/sprint-02.md
+          - Sprint 01: planejamento/sprint-01.md
+          - Sprint 02: planejamento/sprint-02.md
+          - Sprint 03: planejamento/sprint-03.md
+          - Sprint 04: planejamento/sprint-04.md
 
   - Pontos de Entrega:
       - Ponto de controle 1: entregas/entrega-01.md
       - Ponto de controle 2: entregas/entrega-02.md
 
-  - Entrega final: 
-      - Entrega final: entregas/entrega-final.md
+  # - Entrega final: 
+  #     - Entrega final: entregas/entrega-final.md
 
   - Referências: referencias.md

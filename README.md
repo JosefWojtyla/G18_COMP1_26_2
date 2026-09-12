@@ -1,4 +1,4 @@
-## GitPages: [https://mdsreq-fga-unb.github.io/REQ-2026.2-T01-IBRADA-NET/](https://josefwojtyla.github.io/G18_COMP1_26_2/)
+## GitPages: [Git Pages - Compilador de Portugol -> Python](https://josefwojtyla.github.io/G18_COMP1_26_2/)
 
 # Como Atualizar a Documentação
 

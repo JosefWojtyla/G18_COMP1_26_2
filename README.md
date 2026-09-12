@@ -1,4 +1,4 @@
-## GitPages: https://mdsreq-fga-unb.github.io/REQ-2026.2-T01-IBRADA-NET/
+## GitPages: [https://mdsreq-fga-unb.github.io/REQ-2026.2-T01-IBRADA-NET/](https://josefwojtyla.github.io/G18_COMP1_26_2/)
 
 # Como Atualizar a Documentação
 
@@ -32,7 +32,7 @@ git add .
 Ou, para adicionar somente um arquivo:
 
 ```bash
-git add docs/requisitos/visao-geral.md
+git add docs/compilador/analise-lexica.md
 ```
 
 ---
@@ -41,7 +41,7 @@ git add docs/requisitos/visao-geral.md
 
 
 ```bash
-git commit -m "docs: atualiza documentação de requisitos"
+git commit -m "docs: atualiza documentação de analise lexica"
 ```
 
 ---

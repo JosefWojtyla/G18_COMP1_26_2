@@ -412,6 +412,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    linguagem e Escopo
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -428,6 +446,91 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Índice">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Índice
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introducao" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introdução
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tipos-de-dados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tipos de dados
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#estruturas-suportadas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Estruturas Suportadas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fora-do-escopo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fora do escopo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decisoes-de-comportamentos-e-semantica" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decisões de Comportamentos e Semântica
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitacoes-aceitas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitações Aceitas
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1086,6 +1189,80 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Índice
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introducao" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Introdução
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tipos-de-dados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tipos de dados
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#estruturas-suportadas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Estruturas Suportadas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fora-do-escopo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fora do escopo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decisoes-de-comportamentos-e-semantica" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Decisões de Comportamentos e Semântica
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limitacoes-aceitas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limitações Aceitas
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1102,6 +1279,45 @@
 
 
 <h1 id="linguagem-e-escopo">linguagem e escopo</h1>
+<h2 id="introducao">Introdução</h2>
+<p>Será feito um compilador da linguagem Portugol, versão Studio UNIVALI, para a linguagem Python.
+Ambas são linguagens tipadas, imperativas e tem funções.</p>
+<h2 id="tipos-de-dados">Tipos de dados</h2>
+<p>Escolhemos para que o compilador faça a tradução direta dos seguintes tipos primitivos para seu equivalentes nativos em Python:</p>
+<ul>
+<li><code>inteiro</code> -&gt; <code>int</code></li>
+<li><code>real</code> -&gt; <code>float</code></li>
+<li><code>cadeia</code> -&gt; <code>str</code></li>
+<li><code>logico</code> -&gt; <code>bool</code></li>
+</ul>
+<h2 id="estruturas-suportadas">Estruturas Suportadas</h2>
+<ul>
+<li><strong>Condicional:</strong> suporte para <code>se</code> e <code>senao</code>, permitindo aninhamento de blocos.</li>
+<li><strong>Repetição iterativa:</strong> suporte para o laço <code>para</code> e <code>enquanto</code>, com contador integrado.</li>
+<li><strong>Funções:</strong> suporte a funções definidas pelo usuário, aceitando parâmetros tipados, retorno de valores, escopo local de variáveis e chamadas recursivas.</li>
+<li><strong>Vetores:</strong> suporte restrito a vetores <em>unidimensionais</em> com tamanho declarado na inicialização e acesso via índice.</li>
+</ul>
+<h2 id="fora-do-escopo">Fora do escopo</h2>
+<ul>
+<li>matrizes multidimensionais</li>
+<li>estruturas, registros, classes ou orientação a objetos.</li>
+<li>importação de bibliotecas externas ou módulos (<code>importar</code>)</li>
+<li>tratamento de exceções (<code>tente/pegue</code>)</li>
+<li>comandos de interrupção de fluxo (<code>break</code>, <code>continue</code> e <code>switch-case</code>).</li>
+<li>manipulação de ponteiros, referências e acesso ao sistema de arquivos.</li>
+</ul>
+<h2 id="decisoes-de-comportamentos-e-semantica">Decisões de Comportamentos e Semântica</h2>
+<ul>
+<li><strong>Variáveis não inicializadas:</strong> variáveis declaradas sem atribuição de valor imediata receberão automaticamente um valor padrão relacionado ao seu tipo na geração do código Python (<code>0</code> para <code>inteiro</code>, <code>0.0</code> para <code>real</code>, <code>""</code> para <code>cadeia</code> e <code>False</code> para <code>logico</code>) para evitar erros de execução.</li>
+<li><strong>Comportamento do <code>leia()</code>:</strong> o compilador gerará automaticamente a conversão do tipo adequada no código Python - por exemplo, <code>int(input())</code> para variáveis do tipo <code>inteiro</code> - com base no tipo declarado inicialmente da variável.</li>
+</ul>
+<h2 id="limitacoes-aceitas">Limitações Aceitas</h2>
+<ul>
+<li>Não serão feitas otimizações avançadas no código gerado, apenas limitando-se à remoção de código morto óbvio.</li>
+<li>Não haverá validação de limite para recursão; fica à cargo do interpretador padrão do Python.</li>
+<li>O gerenciamento de escopo será binário, suportando apenas variáveis globais e locais, sem namespaces complexos.</li>
+<li>Cada função deve possuir um nome estritamente único.</li>
+</ul>
 
 
 

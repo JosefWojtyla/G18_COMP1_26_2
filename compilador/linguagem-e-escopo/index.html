@@ -496,6 +496,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#elementos-lexicos-suportados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Elementos Léxicos Suportados
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#fora-do-escopo" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1229,6 +1240,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#elementos-lexicos-suportados" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Elementos Léxicos Suportados
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#fora-do-escopo" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1293,9 +1315,54 @@ Ambas são linguagens tipadas, imperativas e tem funções.</p>
 <h2 id="estruturas-suportadas">Estruturas Suportadas</h2>
 <ul>
 <li><strong>Condicional:</strong> suporte para <code>se</code> e <code>senao</code>, permitindo aninhamento de blocos.</li>
-<li><strong>Repetição iterativa:</strong> suporte para o laço <code>para</code> e <code>enquanto</code>, com contador integrado.</li>
-<li><strong>Funções:</strong> suporte a funções definidas pelo usuário, aceitando parâmetros tipados, retorno de valores, escopo local de variáveis e chamadas recursivas.</li>
-<li><strong>Vetores:</strong> suporte restrito a vetores <em>unidimensionais</em> com tamanho declarado na inicialização e acesso via índice.</li>
+<li>
+<p><strong>Laços de repetição:</strong> suporte para o laço <code>para</code> e <code>enquanto</code> das seguintes formas:</p>
+<ul>
+<li>
+<p><em>Para:</em>
+Na linguagem Portugol, é feito da seguinte forma:
+<code>bash
+para (`[inicialização de variáveis]; [condições de parada do laço]; [formas de incremento das variáveis]`){
+    escreva(i, "\n")
+}</code>
+O compilador suportará:</p>
+<ul>
+<li>Variável declarada no inicializador do <code>para</code> é tratada como local ao laço
+em Portugol, mas no código Python gerado ela permanecerá acessível após
+o laço (limitação aceita — veja seção correspondente).</li>
+<li>A <strong>condição</strong> de parada pode ser somente comparações simples: <code>&lt; / &gt;</code>, <code>&lt;= / &gt;=</code>, <code>==</code> e <code>!=</code></li>
+<li>No incremento, serão aceitos incrementos simples: <code>++</code>, <code>--</code>, <code>+= 2</code>, <code>*= 3</code>.</li>
+</ul>
+</li>
+<li>
+<p><em>Enquanto:</em>
+Usa parênteses <code>()</code> para a condição e chaves <code>{}</code> para abrir e fechar o bloco.
+```bash
+inteiro cont = 1</p>
+</li>
+</ul>
+<p>enquanto(cont &lt;= 5){
+    escreva(cont, "\n")
+    cont = contador + 1
+}
+<code>`` 
+    - A condição aceita da mesma forma que no laço</code>para`.</p>
+</li>
+<li>
+<p><strong>Funções:</strong> suporte a funções definidas pelo usuário, aceitando parâmetros tipados, retorno de valores, escopo local de variáveis e chamadas recursivas.</p>
+</li>
+<li>
+<p><strong>Vetores:</strong> suporte restrito a vetores <em>unidimensionais</em> com tamanho declarado na inicialização e acesso via índice.</p>
+</li>
+</ul>
+<h2 id="elementos-lexicos-suportados">Elementos Léxicos Suportados</h2>
+<ul>
+<li><strong>Operadores aritméticos:</strong> <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code></li>
+<li><strong>Operadores relacionais:</strong> <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>, <code>==</code>, <code>!=</code></li>
+<li><strong>Operadores lógicos:</strong> <code>e</code>, <code>ou</code>, <code>nao</code></li>
+<li><strong>Operador de atribuição:</strong> <code>=</code></li>
+<li><strong>Operadores de incremento/decremento:</strong> <code>++</code>, <code>--</code>, <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code></li>
+<li><strong>Comentários:</strong> <code>//</code> para linha única e <code>/* */</code> para bloco — ambos serão <strong>descartados</strong> na geração do código Python (não traduzidos para <code>#</code>).</li>
 </ul>
 <h2 id="fora-do-escopo">Fora do escopo</h2>
 <ul>
@@ -1309,7 +1376,9 @@ Ambas são linguagens tipadas, imperativas e tem funções.</p>
 <h2 id="decisoes-de-comportamentos-e-semantica">Decisões de Comportamentos e Semântica</h2>
 <ul>
 <li><strong>Variáveis não inicializadas:</strong> variáveis declaradas sem atribuição de valor imediata receberão automaticamente um valor padrão relacionado ao seu tipo na geração do código Python (<code>0</code> para <code>inteiro</code>, <code>0.0</code> para <code>real</code>, <code>""</code> para <code>cadeia</code> e <code>False</code> para <code>logico</code>) para evitar erros de execução.</li>
+<li><strong>Variáveis inicializadas no laço <code>Para</code>:</strong> Variável declarada no inicializador do <code>para</code> permanece acessível após o laço no código Python gerado, diferindo do comportamento do Portugol.</li>
 <li><strong>Comportamento do <code>leia()</code>:</strong> o compilador gerará automaticamente a conversão do tipo adequada no código Python - por exemplo, <code>int(input())</code> para variáveis do tipo <code>inteiro</code> - com base no tipo declarado inicialmente da variável.</li>
+<li><strong>Comportamento do <code>escreva()</code>:</strong> os argumentos serão separados por vírgula. Os argumentos são passados diretamente, sem conversão de tipo necessário - <code>escreva()</code> -&gt; <code>print()</code>, mapeia diretamente adicionando quebra de linha ao final por padrão.</li>
 </ul>
 <h2 id="limitacoes-aceitas">Limitações Aceitas</h2>
 <ul>

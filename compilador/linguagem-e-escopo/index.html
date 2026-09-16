@@ -1319,34 +1319,34 @@ Ambas são linguagens tipadas, imperativas e tem funções.</p>
 <p><strong>Laços de repetição:</strong> suporte para o laço <code>para</code> e <code>enquanto</code> das seguintes formas:</p>
 <ul>
 <li>
-<p><em>Para:</em>
-Na linguagem Portugol, é feito da seguinte forma:
-<code>bash
-para (`[inicialização de variáveis]; [condições de parada do laço]; [formas de incremento das variáveis]`){
+<p><em>Para:</em></p>
+<p>Na linguagem Portugol, é feito da seguinte forma:</p>
+<pre><code>para (inteiro i = 0; i &lt; 10; i++){
     escreva(i, "\n")
-}</code>
-O compilador suportará:</p>
-<ul>
-<li>Variável declarada no inicializador do <code>para</code> é tratada como local ao laço
-em Portugol, mas no código Python gerado ela permanecerá acessível após
-o laço (limitação aceita — veja seção correspondente).</li>
-<li>A <strong>condição</strong> de parada pode ser somente comparações simples: <code>&lt; / &gt;</code>, <code>&lt;= / &gt;=</code>, <code>==</code> e <code>!=</code></li>
-<li>No incremento, serão aceitos incrementos simples: <code>++</code>, <code>--</code>, <code>+= 2</code>, <code>*= 3</code>.</li>
-</ul>
+}
+</code></pre>
+<p>O compilador suportará:
+- Variável declarada no inicializador do <code>para</code> é tratada como local ao laço
+  em Portugol, mas no código Python gerado ela permanecerá acessível após
+  o laço (limitação aceita — veja seção correspondente).
+- A <strong>condição</strong> de parada pode ser somente comparações simples: <code>&lt; / &gt;</code>, <code>&lt;= / &gt;=</code>, <code>==</code> e <code>!=</code>
+- No incremento, serão aceitos incrementos simples: <code>++</code>, <code>--</code>, <code>+= 2</code>, <code>*= 3</code>.</p>
 </li>
 <li>
-<p><em>Enquanto:</em>
-Usa parênteses <code>()</code> para a condição e chaves <code>{}</code> para abrir e fechar o bloco.
-```bash
-inteiro cont = 1</p>
-</li>
-</ul>
-<p>enquanto(cont &lt;= 5){
+<p><em>Enquanto:</em></p>
+<p>Usa parênteses <code>()</code> para a condição e chaves <code>{}</code> para abrir e fechar o bloco.</p>
+<pre><code>inteiro cont = 1
+
+enquanto(cont &lt;= 5){
     escreva(cont, "\n")
     cont = contador + 1
 }
-<code>`` 
-    - A condição aceita da mesma forma que no laço</code>para`.</p>
+</code></pre>
+<ul>
+<li>A condição aceita da mesma forma que no laço <code>para</code>.</li>
+</ul>
+</li>
+</ul>
 </li>
 <li>
 <p><strong>Funções:</strong> suporte a funções definidas pelo usuário, aceitando parâmetros tipados, retorno de valores, escopo local de variáveis e chamadas recursivas.</p>

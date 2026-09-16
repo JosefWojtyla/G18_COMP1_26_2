@@ -19,29 +19,31 @@ Escolhemos para que o compilador faça a tradução direta dos seguintes tipos p
 - **Condicional:** suporte para `se` e `senao`, permitindo aninhamento de blocos.
 - **Laços de repetição:** suporte para o laço `para` e `enquanto` das seguintes formas:
     - *Para:*
-    Na linguagem Portugol, é feito da seguinte forma:
-    ```bash
-    para (`[inicialização de variáveis]; [condições de parada do laço]; [formas de incremento das variáveis]`){
-        escreva(i, "\n")
-    }
-    ```
-    O compilador suportará:
+
+        Na linguagem Portugol, é feito da seguinte forma:
+
+            para (inteiro i = 0; i < 10; i++){
+                escreva(i, "\n")
+            }
+
+        O compilador suportará:
         - Variável declarada no inicializador do `para` é tratada como local ao laço
-        em Portugol, mas no código Python gerado ela permanecerá acessível após
-        o laço (limitação aceita — veja seção correspondente).
+          em Portugol, mas no código Python gerado ela permanecerá acessível após
+          o laço (limitação aceita — veja seção correspondente).
         - A **condição** de parada pode ser somente comparações simples: `< / >`, `<= / >=`, `==` e `!=`
         - No incremento, serão aceitos incrementos simples: `++`, `--`, `+= 2`, `*= 3`.
 
     - *Enquanto:*
-    Usa parênteses `()` para a condição e chaves `{}` para abrir e fechar o bloco.
-    ```bash
-    inteiro cont = 1
 
-    enquanto(cont <= 5){
-        escreva(cont, "\n")
-        cont = contador + 1
-    }
-    ``` 
+        Usa parênteses `()` para a condição e chaves `{}` para abrir e fechar o bloco.
+
+            inteiro cont = 1
+
+            enquanto(cont <= 5){
+                escreva(cont, "\n")
+                cont = contador + 1
+            }
+
         - A condição aceita da mesma forma que no laço `para`.
 
 - **Funções:** suporte a funções definidas pelo usuário, aceitando parâmetros tipados, retorno de valores, escopo local de variáveis e chamadas recursivas.

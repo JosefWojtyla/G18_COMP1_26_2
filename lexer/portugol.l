@@ -13,8 +13,8 @@ DIGITO      [0-9]
 LETRA       [a-z,A-Zà-úÀ-Ú_]
 IDENTIFICADOR          {LETRA}({LETRA}|{DIGITO})*
 NUM_INT     {DIGITO}+
-NUM_REAL    {DIGITO}+"."+{DIGITO}
-ESPACO      [ \t\r]+  
+NUM_REAL    {DIGITO}+"."?{DIGITO}+
+ESPACO      [ \t\r\n]+  
 
 
 %%
@@ -22,7 +22,7 @@ ESPACO      [ \t\r]+
 "//".*          {/*comentario de linha so ignora*/}
 "{"[^}]*"}"     {/*comentario de bloco so ignora tbm*/}
 
-"programa"                  { PROGRAMA;}
+"programa"                  { return PROGRAMA;}
 "inclua"                    {return INCLUA;}
 "const"                     {return CONST;}
 "cadeia"                    {return CADEIA;}

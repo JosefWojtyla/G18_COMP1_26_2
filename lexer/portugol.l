@@ -21,8 +21,10 @@ ESPACO      [ \t\r\n]+
 %%
 
 "//".*          {/*comentario de linha so ignora*/}
-"{"[^}]*"}"     {/*comentario de bloco so ignora tbm*/}
+"/*"([^*]|\*+[^*/])*\*+"/" {/* ignora comentário de bloco */}
 
+"{"                         { return ABRE_CHAVE; }
+"}"                         { return FECHA_CHAVE; }
 "programa"                  { return PROGRAMA;}
 "inclua"                    {return INCLUA;}
 "const"                     {return CONST;}

@@ -14,6 +14,12 @@ extern FILE *yyin;
 
 /* Seção de Declara ções do Bison */
 
+%union {
+    int inteiro;
+    float real;
+    char *str;
+}
+
 %token PROGRAMA FUNCAO INICIO
 %token T_INTEIRO T_REAL T_CADEIA T_LOGICO
 %token ESCREVA LEIA
@@ -43,15 +49,10 @@ extern FILE *yyin;
 %token <str> STRING IDENTIFICADOR
 
 
-%union {
-    int inteiro;
-    float real;
-    char *str;
-}
+
 
 
 /* (opcional por enquanto define a ordem) */
-%type <str> programa bloco comando declaracao expressao
 %left OU
 %left E
 %left IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL
@@ -146,7 +147,7 @@ tipo
 enquanto_comando
     : ENQUANTO ABRE_PAR expressao FECHA_PAR FACA ABRE_CHAVE bloco FECHA_CHAVE
         {
-            printf(" enquanto\n")
+            printf(" enquanto\n");
         }
     ;
 

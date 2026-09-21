@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-void yyerror(const char *s);
-extern int yylex(void);
-extern int yylineno;
+void yyerror(const char *s); /* função de erro */
+extern int yylex(void);        /* função do Flex */
+extern int yylineno;            /* linha atual (do Flex) */
 
 %}
 
@@ -41,7 +41,7 @@ extern int yylineno;
 }
 
 
-/* (opcional por enquanto) */
+/* (opcional por enquanto define a ordem) */
 %type <str> programa bloco comando declaracao expressao
 %left OU
 %left E
@@ -56,4 +56,121 @@ extern int yylineno;
 
  /* Seção de Regras Gramaticais */
 
- 
+programa
+    : PROGRAMA ABRE_CHAVE FUNCAO INICIO ABRE_PAR FECHA_PAR ABRE_CHAVE bloco FECHA_CHAVE FECHA_CHAVE
+        {
+            printf(" Programa reconhecido \n");
+        }
+    | error
+        {
+            yyerror("Erro na estrutura do programa");
+        }
+    ;
+
+
+
+bloco
+    : 
+        {
+            printf(" Bloco vazio\n");
+        }
+    | bloco comando
+        {
+            printf(" Comando adicionado ao bloco\n");
+        }
+    ;
+
+
+
+comando
+    : declaracao PONTO_VIRGULA
+        {
+            printf(" Declaração\n");
+        }
+    | IDENTIFICADOR ATRIBUICAO expressao PONTO_VIRGULA
+        {
+            printf(" Atribuição a %s\n", $1);
+        }
+    | ESCREVA ABRE_PAR expressao FECHA_PAR PONTO_VIRGULA
+        {
+            printf(" escreva()\n");
+        }
+    | LEIA ABRE_PAR IDENTIFICADOR FECHA_PAR PONTO_VIRGULA
+        {
+            printf(" leia(%s)\n", $3);
+        }
+    | se_comando
+        {
+            printf(" se/senao\n");
+        }
+    | enquanto_comando
+        {
+            printf(" enquanto\n");
+        }
+    | error PONTO_VIRGULA
+        {
+            yyerror("Comando inválido");
+            yyerrok;
+        }
+    ;
+
+
+declaracao
+    : tipo IDENTIFICADOR
+        {
+            printf("      Declaração de %s\n", $2);
+        }
+    | tipo IDENTIFICADOR ATRIBUICAO expressao
+        {
+            printf("      Declaração de %s com atribuição\n", $2);
+        }
+    ;
+
+
+tipo
+    : T_INTEIRO     { printf("(tipo: inteiro) "); }
+    | T_REAL        { printf("(tipo: real) "); }
+    | T_CADEIA      { printf("(tipo: cadeia) "); }
+    | T_LOGICO      { printf("(tipo: logico) "); }
+    ;
+
+/* Ainda falta coisa pra adicionar*/
+
+%%
+
+/* SEÇÃO 4: CÓDIGO C */
+
+
+void yyerror(const char *s) {
+    fprintf(stderr, "Erro na linha %d: %s\n", yylineno, s);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc > 1) {
+        FILE *f = fopen(argv[1], "r");
+        if (!f) {
+            perror("Erro ao abrir arquivo");
+            return 1;
+        }
+        yyin = f;
+    } else {
+        yyin = stdin;
+    }
+
+    printf("=== PARSER PORTUGOL STUDIO UNIVALI ===\n\n");
+
+    int resultado = yyparse();
+
+    if (resultado == 0) {
+        printf("\n\n Parse concluído com sucesso!\n");
+    } else {
+        printf("\n\n Erros encontrados durante o parse.\n");
+    }
+
+    if (argc > 1) {
+        fclose(yyin);
+    }
+
+    return resultado;
+}
+

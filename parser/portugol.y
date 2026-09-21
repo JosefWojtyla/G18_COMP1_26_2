@@ -29,6 +29,14 @@ extern int yylineno;            /* linha atual (do Flex) */
 %token MAIS MENOS VEZES DIVIDE MODULO
 %token MAIS_MAIS MENOS_MENOS MAIS_IGUAL MENOS_IGUAL
 
+/* ainda n tem definição na seção debaixo*/
+%token INCLUA
+%token CONST
+%token CADEIA
+%token CARACTER
+%token PROCEDIMENTO
+
+
 %token <inteiro> INTEIRO
 %token <real> REAL
 %token <str> STRING IDENTIFICADOR
@@ -137,6 +145,17 @@ tipo
 enquanto_comando
     : ENQUANTO ABRE_PAR expressao FECHA_PAR FACA ABRE_CHAVE bloco FECHA_CHAVE
         {
+        }
+    ;
+
+se_comando
+    : SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE bloco FECHA_CHAVE
+        {
+            printf(" se sem senao\n");
+        }
+    | SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE bloco FECHA_CHAVE SENAO ABRE_CHAVE bloco FECHA_CHAVE
+        {
+            printf(" se com senao\n");
         }
     ;
 

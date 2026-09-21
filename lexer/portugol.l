@@ -26,9 +26,10 @@ ESPACO      [ \t\r\n]+
 "{"                         { return ABRE_CHAVE; }
 "}"                         { return FECHA_CHAVE; }
 "programa"                  { return PROGRAMA;}
+"inicio"                    { return INICIO; }
 "inclua"                    {return INCLUA;}
 "const"                     {return CONST;}
-"cadeia"                    {return CADEIA;}
+"cadeia"                    {return T_CADEIA;}
 "caracter"                  {return CARACTER;}
 "inteiro"                   { return T_INTEIRO; }
 "real"                      { return T_REAL; }
@@ -56,7 +57,7 @@ ESPACO      [ \t\r\n]+
 "ate"                      { return ATE; }
 "fimpara"                  { return FIMPARA; }
 
-"<-"|":= | ="                  { return ATRIBUICAO; }
+"<-"|":="|"="              { return ATRIBUICAO; }
 "=="                       { return IGUAL; }
 "!="                       { return DIFERENTE; }
 "<="                       { return MENOR_IGUAL; }

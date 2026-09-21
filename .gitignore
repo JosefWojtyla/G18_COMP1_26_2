@@ -1,0 +1,4 @@
+./compilador
+./lexer/lex.yy.c
+./parser/y.tab.c
+./parser/y.tab.h

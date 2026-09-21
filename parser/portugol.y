@@ -146,6 +146,7 @@ tipo
 enquanto_comando
     : ENQUANTO ABRE_PAR expressao FECHA_PAR FACA ABRE_CHAVE bloco FECHA_CHAVE
         {
+            printf(" enquanto\n")
         }
     ;
 
@@ -163,8 +164,90 @@ se_comando
 expressao
     : INTEIRO
         {
-            printf("inteiro:%d", $1);
+            printf("(inteiro: %d) ", $1);
         }
+    | REAL
+        {
+            printf("(real: %.2f) ", $1);
+        }
+    | STRING
+        {
+            printf("(string: %s) ", $1);
+        }
+    | IDENTIFICADOR
+        {
+            printf("(var: %s) ", $1);
+        }
+    | VERDADEIRO
+        {
+            printf("(verdadeiro) ");
+        }
+    | FALSO
+        {
+            printf("(falso) ");
+        }
+    | ABRE_PAR expressao FECHA_PAR
+        {
+            printf("(expr) ");
+        }
+    | expressao MAIS expressao
+        {
+            printf("(+) ");
+        }
+    | expressao MENOS expressao
+        {
+            printf("(-) ");
+        }
+    | expressao VEZES expressao
+        {
+            printf("(*) ");
+        }
+    | expressao DIVIDE expressao
+        {
+            printf("(/) ");
+        }
+    | expressao MODULO expressao
+        {
+            printf("(%%) ");
+        }
+    | expressao IGUAL expressao
+        {
+            printf("(==) ");
+        }
+    | expressao DIFERENTE expressao
+        {
+            printf("(!=) ");
+        }
+    | expressao MENOR expressao
+        {
+            printf("(<) ");
+        }
+    | expressao MAIOR expressao
+        {
+            printf("(>) ");
+        }
+    | expressao MENOR_IGUAL expressao
+        {
+            printf("(<=) ");
+        }
+    | expressao MAIOR_IGUAL expressao
+        {
+            printf("(>=) ");
+        }
+    | expressao E expressao
+        {
+            printf("(e) ");
+        }
+    | expressao OU expressao
+        {
+            printf("(ou) ");
+        }
+    | NAO expressao
+        {
+            printf("(nao) ");
+        }
+    ;
+
 
 /* Ainda falta coisa pra adicionar*/
 

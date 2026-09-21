@@ -1,5 +1,6 @@
 %{
-#include "portugol.tab.h"
+#include "../parser/portugol.tab.h"
+/*#include "portugol.tab.h"*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

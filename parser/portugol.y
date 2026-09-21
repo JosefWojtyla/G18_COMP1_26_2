@@ -8,6 +8,7 @@
 void yyerror(const char *s); /* função de erro */
 extern int yylex(void);        /* função do Flex */
 extern int yylineno;            /* linha atual (do Flex) */
+extern FILE *yyin;
 
 %}
 

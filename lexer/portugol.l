@@ -56,7 +56,7 @@ ESPACO      [ \t\r\n]+
 "ate"                      { return ATE; }
 "fimpara"                  { return FIMPARA; }
 
-"<-"|":="                  { return ATRIBUICAO; }
+"<-"|":= | ="                  { return ATRIBUICAO; }
 "=="                       { return IGUAL; }
 "!="                       { return DIFERENTE; }
 "<="                       { return MENOR_IGUAL; }

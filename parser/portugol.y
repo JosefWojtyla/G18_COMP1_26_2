@@ -134,6 +134,18 @@ tipo
     | T_LOGICO      { printf("(tipo: logico) "); }
     ;
 
+enquanto_comando
+    : ENQUANTO ABRE_PAR expressao FECHA_PAR FACA ABRE_CHAVE bloco FECHA_CHAVE
+        {
+        }
+    ;
+
+expressao
+    : INTEIRO
+        {
+            printf("inteiro:%d", $1);
+        }
+
 /* Ainda falta coisa pra adicionar*/
 
 %%

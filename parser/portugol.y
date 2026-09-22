@@ -20,6 +20,7 @@ extern FILE *yyin;
     char *str;
 }
 
+
 %token PROGRAMA FUNCAO INICIO
 %token T_INTEIRO T_REAL T_CADEIA T_LOGICO
 %token ESCREVA LEIA
@@ -256,9 +257,12 @@ expressao
 
 /* SEÇÃO 4: CÓDIGO C */
 
+int qtd_erros = 0;
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erro na linha %d: %s\n", yylineno, s);
+    qtd_erros++;
+
 }
 
 int main(int argc, char *argv[]) {
@@ -285,6 +289,10 @@ int main(int argc, char *argv[]) {
 
     if (argc > 1) {
         fclose(yyin);
+    }
+
+    if(qtd_erros){
+        return qtd_erros;
     }
 
     return resultado;

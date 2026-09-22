@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+extern int qtd_erros;
 %}
 
 %option noyywrap
@@ -83,7 +84,7 @@ ESPACO      [ \t\r\n]+
 {ESPACO}                   { /* ignora espaços */ }
 \n                         { /* yylineno já conta a linha */ }
 
-.                          { fprintf(stderr, "Erro léxico: caractere inválido '%s' na linha %d\n", yytext, yylineno); }
+.                          { fprintf(stderr, "Erro léxico: caractere inválido '%s' na linha %d\n", yytext, yylineno); qtd_erros++; }
 
 %%
 

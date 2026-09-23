@@ -1,0 +1,72 @@
+site_name: Compilador - Grupo 18
+site_description: Documentação do projeto de construção de um compilador
+site_author: Grupo 18
+
+theme:
+  name: material
+  language: pt-BR
+
+  palette:
+
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: black
+    accent: grey
+    toggle:
+      icon: material/weather-sunny
+      name: Mudar para modo escuro
+
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: black
+    accent: grey
+    toggle:
+      icon: material/weather-night
+      name: Mudar para modo claro
+
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Início: index.md
+
+  - Compilador:
+      - linguagem e Escopo: compilador/linguagem-e-escopo.md
+      - Análise Léxica: compilador/analise-lexica.md
+      - Análise Sintática: compilador/analise-sintatica.md
+      - Análise Semântica: compilador/analise-semantica.md
+      - Código Intermediário: compilador/codigo-intermediario.md
+      - Código final: compilador/codigo-final.md
+      # - Decisões: decisoes.md
+
+
+  - Planejamento:
+      - Visão geral: planejamento/visao-geral.md
+      - Sprints:
+          - Sprint 01: planejamento/sprint-01.md
+          - Sprint 02: planejamento/sprint-02.md
+          - Sprint 03: planejamento/sprint-03.md
+          - Sprint 04: planejamento/sprint-04.md
+          - Sprint 05: planejamento/sprint-05.md
+          - Sprint 06: planejamento/sprint-06.md
+          - Sprint 07: planejamento/sprint-07.md
+
+  - Pontos de Entrega:
+      - Ponto de controle 1: entregas/entrega-01.md
+      - Ponto de controle 2: entregas/entrega-02.md
+
+  # - Entrega final: 
+  #     - Entrega final: entregas/entrega-final.md
+
+  - Referências: referencias.md

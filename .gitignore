@@ -1,15 +1,30 @@
-./compilador
-./lexer/lex.yy.c
-./parser/y.tab.c
-./parser/y.tab.h
-compilador
-lexer/lex.yy.c
-parser/portugol.tab.c
-parser/portugol.tab.h
-parser/portugol.output
-build/
+﻿# MkDocs - pasta gerada pelo build local
 site/
-site/
-__pycache__/
-*.pyc
 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+/lexer
+/parser
+/build

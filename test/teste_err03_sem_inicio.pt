@@ -1,5 +1,5 @@
 // Teste ERR03 — Estrutura do programa invalida (sem funcao inicio)
 // ESPERADO: erro sintatico (FAIL)
 programa {
-    inteiro x = 5;
+    inteiro x = 5
 }

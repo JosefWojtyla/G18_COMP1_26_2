@@ -2,6 +2,6 @@
 // ESPERADO: erro lexico (FAIL)
 programa {
     funcao inicio() {
-        inteiro x = 10@;
+        inteiro x = 10@
     }
 }

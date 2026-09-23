@@ -2,10 +2,10 @@
 // Cobre: IDENTIFICADOR <- expressao; escreva(...); leia(...)
 programa {
     funcao inicio() {
-        inteiro x;
-        x = 10;
-        escreva(x);
-        leia(x);
-        escreva(x);
+        inteiro x
+        x = 10
+        escreva(x)
+        leia(x)
+        escreva(x)
     }
 }

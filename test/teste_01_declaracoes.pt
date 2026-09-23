@@ -2,13 +2,13 @@
 // Cobre: tipo IDENTIFICADOR; e tipo IDENTIFICADOR <- expressao;
 programa {
     funcao inicio() {
-        inteiro a;
-        real b;
-        cadeia c;
-        logico d;
-        inteiro x = 42;
-        real pi = 3.14;
-        cadeia nome = "Fulaninho";
-        logico ativo = verdadeiro;
+        inteiro a
+        real b
+        cadeia c
+        logico d
+        inteiro x = 42
+        real pi = 3.14
+        cadeia nome = "Fulaninho"
+        logico ativo = verdadeiro
     }
 }

@@ -2,13 +2,13 @@
 // Cobre: +, -, *, /, %, precedencia, parenteses
 programa {
     funcao inicio() {
-        inteiro a = 10 + 5;
-        inteiro b = 10 - 3;
-        inteiro c = 4 * 3;
-        inteiro d = 10 / 2;
-        inteiro resto = 10 % 3;
-        inteiro f = (2 + 3) * 4;
-        real g = 1.5 + 2.5;
-        escreva(f);
+        inteiro a = 10 + 5
+        inteiro b = 10 - 3
+        inteiro c = 4 * 3
+        inteiro d = 10 / 2
+        inteiro resto = 10 % 3
+        inteiro f = (2 + 3) * 4
+        real g = 1.5 + 2.5
+        escreva(f)
     }
 }

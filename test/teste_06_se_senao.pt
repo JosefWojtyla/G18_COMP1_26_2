@@ -2,11 +2,11 @@
 // Cobre: se (expr) entao { bloco } senao { bloco }
 programa {
     funcao inicio() {
-        inteiro nota = 7;
+        inteiro nota = 7
         se (nota >= 6) entao {
-            escreva("Aprovado");
+            escreva("Aprovado")
         } senao {
-            escreva("Reprovado");
+            escreva("Reprovado")
         }
     }
 }

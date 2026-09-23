@@ -15,7 +15,7 @@ DIGITO      [0-9]
 LETRA       [a-z,A-Zà-úÀ-Ú_]
 IDENTIFICADOR          {LETRA}({LETRA}|{DIGITO})*
 NUM_INT     {DIGITO}+
-NUM_REAL    {DIGITO}+"."?{DIGITO}+
+NUM_REAL    {DIGITO}+"."{DIGITO}+
 ESPACO      [ \t\r\n]+  
 
 
@@ -50,17 +50,13 @@ ESPACO      [ \t\r\n]+
 "se"                       { return SE; }
 "entao"                    { return ENTAO; }
 "senao"                    { return SENAO; }
-"fimse"                    { return FIMSE; }
 "enquanto"                 { return ENQUANTO; }
 "faca"                     { return FACA; }
-"fimenquanto"              { return FIMENQUANTO; }
 "para"                     { return PARA; }
 "ate"                      { return ATE; }
-"fimpara"                  { return FIMPARA; }
 
-"<-"|":="|"="              { return ATRIBUICAO; }
 "=="                       { return IGUAL; }
-"="                  { return ATRIBUICAO; }
+"="                        { return ATRIBUICAO; }
 "!="                       { return DIFERENTE; }
 "<="                       { return MENOR_IGUAL; }
 ">="                       { return MAIOR_IGUAL; }
@@ -78,8 +74,8 @@ ESPACO      [ \t\r\n]+
 ":"                        { return DOIS_PONTOS; }
 
 \"[^\"]*\"                 { yylval.str = strdup(yytext); return STRING; }
-{NUM_INT}                  { yylval.inteiro = atoi(yytext); return INTEIRO; }
 {NUM_REAL}                 { yylval.real = atof(yytext); return REAL; }
+{NUM_INT}                  { yylval.inteiro = atoi(yytext); return INTEIRO; }
 {IDENTIFICADOR}                       { yylval.str = strdup(yytext); return IDENTIFICADOR; }
 
 {ESPACO}                   { /* ignora espaços */ }

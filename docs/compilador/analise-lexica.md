@@ -10,7 +10,7 @@ Entrada: inteiro x = 5
            ↓
         [Flex reconhece padrões]
            ↓
-Saída: INTEIRO | IDENT(x) | ATRIB(=) | NUM_INT(5)
+Saída: T_INTEIRO | IDENT(x) | ATRIBUICAO(=) | INTEIRO(5)
 ```
  
 ### Implementação (Flex)
@@ -44,8 +44,8 @@ Saída: INTEIRO | IDENT(x) | ATRIB(=) | NUM_INT(5)
  
 #### Operadores
 ```flex
-"<-"|":="       { return ATRIBUICAO; }
 "=="            { return IGUAL; }
+"="             { return ATRIBUICAO; }
 "!="            { return DIFERENTE; }
 "<="            { return MENOR_IGUAL; }
 ">="            { return MAIOR_IGUAL; }
@@ -89,7 +89,7 @@ Saída: INTEIRO | IDENT(x) | ATRIB(=) | NUM_INT(5)
 #### Ignorar
 ```flex
 "//".*                          { /* comentário de linha */ }
-"{"[^}]*"}"                     { /* comentário de bloco */ }
+"/*"([^*]|\*+[^*/])*\*+"/"                      { /* comentário de bloco */ }
 [ \t]                           { /* espaço e tab */ }
 \n                              { /* yylineno já conta */ }
 .                               { fprintf(stderr, "Erro léxico: '%s' linha %d\n", yytext, yylineno); }

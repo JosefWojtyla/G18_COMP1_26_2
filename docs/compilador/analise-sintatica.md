@@ -6,7 +6,7 @@ Verificar se a sequência de tokens segue as **regras gramaticais** da linguagem
  
 ### Processo
 ```
-Entrada: INTEIRO | IDENT(x) | ATRIB(=) | NUM_INT(5)
+Entrada: T_INTEIRO | IDENT(x) | ATRIBUICAO(=) | INTEIRO(5)
           ↓
      [Bison valida com gramática]
           ↓
@@ -163,5 +163,5 @@ lista_argumentos
 - Suporta aninhamento de blocos (`se` dentro de `se`, etc)
 - Funções com parâmetros tipados
 - Expressões aritméticas, lógicas e relacionais
-- Linguagem sem ; no final
+- Linguagem sem ; no final do código. Somente dentro do laço `para`.
 <!-- - Vetores unidimensionais (ainda não na sprint 2) -->

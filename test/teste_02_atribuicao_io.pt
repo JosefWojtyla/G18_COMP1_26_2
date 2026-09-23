@@ -1,0 +1,11 @@
+// Teste 02 — Atribuicao e escreva/leia
+// Cobre: IDENTIFICADOR <- expressao; escreva(...); leia(...)
+programa {
+    funcao inicio() {
+        inteiro x;
+        x = 10;
+        escreva(x);
+        leia(x);
+        escreva(x);
+    }
+}

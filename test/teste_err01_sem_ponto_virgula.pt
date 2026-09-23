@@ -1,0 +1,8 @@
+// Teste ERR01 — Falta ponto-e-virgula
+// ESPERADO: erro sintatico (FAIL)
+programa {
+    funcao inicio() {
+        inteiro x = 10
+        escreva(x);
+    }
+}

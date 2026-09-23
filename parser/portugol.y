@@ -94,19 +94,19 @@ bloco
 
 
 comando
-    : declaracao PONTO_VIRGULA
+    : declaracao 
         {
             printf(" Declaração\n");
         }
-    | IDENTIFICADOR ATRIBUICAO expressao PONTO_VIRGULA
+    | IDENTIFICADOR ATRIBUICAO expressao 
         {
             printf(" Atribuição a %s\n", $1);
         }
-    | ESCREVA ABRE_PAR expressao FECHA_PAR PONTO_VIRGULA
+    | ESCREVA ABRE_PAR expressao FECHA_PAR 
         {
             printf(" escreva()\n");
         }
-    | LEIA ABRE_PAR IDENTIFICADOR FECHA_PAR PONTO_VIRGULA
+    | LEIA ABRE_PAR IDENTIFICADOR FECHA_PAR 
         {
             printf(" leia(%s)\n", $3);
         }

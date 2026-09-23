@@ -1,4 +1,4 @@
-# Construção de Compiladores
+# Compilador Grupo 18 - Portugol -> Python
 
 Documentação do projeto desenvolvido pela **Grupo 18** para a disciplina de **Construção de Compiladores**.
 

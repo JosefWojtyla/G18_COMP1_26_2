@@ -1,118 +1,300 @@
 %{
+/* Seção de Prologue ( Declara ções C/C++) */
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-// Declaração de funções obrigatórias para o Bison
-int yylex(void);
-void yyerror(const char *s);
-
-// Variável global do Flex para ler arquivos
+void yyerror(const char *s); /* função de erro */
+extern int yylex(void);        /* função do Flex */
+extern int yylineno;            /* linha atual (do Flex) */
 extern FILE *yyin;
-extern char *yytext;
+
 %}
 
-/* 1. Definição da estrutura yylval */
+/* Seção de Declara ções do Bison */
+
 %union {
-    char* str;
     int inteiro;
     float real;
+    char *str;
 }
 
-/* 2. Declaração de todos os Tokens que aparecem no seu .l */
-%token PROGRAMA INCLUA CONST CADEIA CARACTER T_INTEIRO T_REAL T_LOGICO
-%token ESCREVA LEIA FUNCAO PROCEDIMENTO RETORNE VERDADEIRO FALSO
-%token E OU NAO SE ENTAO SENAO FIMSE ENQUANTO FACA FIMENQUANTO
-%token PARA ATE FIMPARA ATRIBUICAO IGUAL DIFERENTE MENOR_IGUAL
-%token MAIOR_IGUAL MENOR MAIOR MAIS MENOS VEZES DIVIDE MODULO
-%token ABRE_PAR FECHA_PAR VIRGULA PONTO_VIRGULA DOIS_PONTOS
 
-/* Tokens com tipos associados à união */
-%token <str> STRING IDENTIFICADOR
-%token <real> REAL
+%token PROGRAMA FUNCAO INICIO
+%token T_INTEIRO T_REAL T_CADEIA T_LOGICO
+%token ESCREVA LEIA
+%token SE ENTAO SENAO FIMSE
+%token ENQUANTO FACA FIMENQUANTO
+%token PARA ATE FIMPARA
+%token RETORNE
+%token VERDADEIRO FALSO
+%token E OU NAO
+%token ABRE_PAR FECHA_PAR ABRE_CHAVE FECHA_CHAVE
+%token VIRGULA PONTO_VIRGULA DOIS_PONTOS
+%token ATRIBUICAO
+%token IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL
+%token MAIS MENOS VEZES DIVIDE MODULO
+%token MAIS_MAIS MENOS_MENOS MAIS_IGUAL MENOS_IGUAL
+
+/* ainda n tem definição na seção debaixo*/
+%token INCLUA
+%token CONST
+%token CADEIA
+%token CARACTER
+%token PROCEDIMENTO
+
+
 %token <inteiro> INTEIRO
+%token <real> REAL
+%token <str> STRING IDENTIFICADOR
+
+
+
+
+
+/* (opcional por enquanto define a ordem) */
+%left OU
+%left E
+%left IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL
+%left MAIS MENOS
+%left VEZES DIVIDE MODULO
+%right NAO
+
+%start programa
+
+%% 
+
+ /* Seção de Regras Gramaticais */
+
+programa
+    : PROGRAMA ABRE_CHAVE FUNCAO INICIO ABRE_PAR FECHA_PAR ABRE_CHAVE bloco FECHA_CHAVE FECHA_CHAVE
+        {
+            printf(" Programa reconhecido \n");
+        }
+    | error
+        {
+            yyerror("Erro na estrutura do programa");
+        }
+    ;
+
+
+
+bloco
+    : 
+        {
+            printf(" Bloco vazio\n");
+        }
+    | bloco comando
+        {
+            printf(" Comando adicionado ao bloco\n");
+        }
+    ;
+
+
+
+comando
+    : declaracao 
+        {
+            printf(" Declaração\n");
+        }
+    | IDENTIFICADOR ATRIBUICAO expressao 
+        {
+            printf(" Atribuição a %s\n", $1);
+        }
+    | ESCREVA ABRE_PAR expressao FECHA_PAR 
+        {
+            printf(" escreva()\n");
+        }
+    | LEIA ABRE_PAR IDENTIFICADOR FECHA_PAR 
+        {
+            printf(" leia(%s)\n", $3);
+        }
+    | se_comando
+        {
+            printf(" se/senao\n");
+        }
+    | enquanto_comando
+        {
+            printf(" enquanto\n");
+        }
+    | error PONTO_VIRGULA
+        {
+            yyerror("Comando inválido");
+            yyerrok;
+        }
+    ;
+
+
+declaracao
+    : tipo IDENTIFICADOR
+        {
+            printf("      Declaração de %s\n", $2);
+        }
+    | tipo IDENTIFICADOR ATRIBUICAO expressao
+        {
+            printf("      Declaração de %s com atribuição\n", $2);
+        }
+    ;
+
+
+tipo
+    : T_INTEIRO     { printf("(tipo: inteiro) "); }
+    | T_REAL        { printf("(tipo: real) "); }
+    | T_CADEIA      { printf("(tipo: cadeia) "); }
+    | T_LOGICO      { printf("(tipo: logico) "); }
+    ;
+
+enquanto_comando
+    : ENQUANTO ABRE_PAR expressao FECHA_PAR FACA ABRE_CHAVE bloco FECHA_CHAVE
+        {
+            printf(" enquanto\n");
+        }
+    ;
+
+se_comando
+    : SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE bloco FECHA_CHAVE
+        {
+            printf(" se sem senao\n");
+        }
+    | SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE bloco FECHA_CHAVE SENAO ABRE_CHAVE bloco FECHA_CHAVE
+        {
+            printf(" se com senao\n");
+        }
+    ;
+
+expressao
+    : INTEIRO
+        {
+            printf("(inteiro: %d) ", $1);
+        }
+    | REAL
+        {
+            printf("(real: %.2f) ", $1);
+        }
+    | STRING
+        {
+            printf("(string: %s) ", $1);
+        }
+    | IDENTIFICADOR
+        {
+            printf("(var: %s) ", $1);
+        }
+    | VERDADEIRO
+        {
+            printf("(verdadeiro) ");
+        }
+    | FALSO
+        {
+            printf("(falso) ");
+        }
+    | ABRE_PAR expressao FECHA_PAR
+        {
+            printf("(expr) ");
+        }
+    | expressao MAIS expressao
+        {
+            printf("(+) ");
+        }
+    | expressao MENOS expressao
+        {
+            printf("(-) ");
+        }
+    | expressao VEZES expressao
+        {
+            printf("(*) ");
+        }
+    | expressao DIVIDE expressao
+        {
+            printf("(/) ");
+        }
+    | expressao MODULO expressao
+        {
+            printf("(%%) ");
+        }
+    | expressao IGUAL expressao
+        {
+            printf("(==) ");
+        }
+    | expressao DIFERENTE expressao
+        {
+            printf("(!=) ");
+        }
+    | expressao MENOR expressao
+        {
+            printf("(<) ");
+        }
+    | expressao MAIOR expressao
+        {
+            printf("(>) ");
+        }
+    | expressao MENOR_IGUAL expressao
+        {
+            printf("(<=) ");
+        }
+    | expressao MAIOR_IGUAL expressao
+        {
+            printf("(>=) ");
+        }
+    | expressao E expressao
+        {
+            printf("(e) ");
+        }
+    | expressao OU expressao
+        {
+            printf("(ou) ");
+        }
+    | NAO expressao
+        {
+            printf("(nao) ");
+        }
+    ;
+
+
+/* Ainda falta coisa pra adicionar*/
 
 %%
 
-/* 3. Regra gramatical minimalista apenas para consumir os tokens */
-input:
-    /* vazio */
-    | input token
-    ;
+/* SEÇÃO 4: CÓDIGO C */
 
-token:
-    PROGRAMA        { printf("Token: PROGRAMA | Texto: '%s'\n", yytext); }
+int qtd_erros = 0;
 
-    | INCLUA        { printf("Token: INCLUA | Texto: '%s'\n", yytext); }
-    | CONST         { printf("Token: CONST | Texto: '%s'\n", yytext); }
-    | CADEIA        { printf("Token: CADEIA | Texto: '%s'\n", yytext); }
-    | CARACTER      { printf("Token: CARACTER | Texto: '%s'\n", yytext); }
-    | T_INTEIRO     { printf("Token: T_INTEIRO | Texto: '%s'\n", yytext); }
-    | T_REAL        { printf("Token: T_REAL | Texto: '%s'\n", yytext); }
-    | T_LOGICO      { printf("Token: T_LOGICO | Texto: '%s'\n", yytext); }
-    | ESCREVA       { printf("Token: ESCREVA | Texto: '%s'\n", yytext); }
-    | LEIA          { printf("Token: LEIA | Texto: '%s'\n", yytext); }
-    | FUNCAO        { printf("Token: FUNCAO | Texto: '%s'\n", yytext); }
-    | PROCEDIMENTO  { printf("Token: PROCEDIMENTO | Texto: '%s'\n", yytext); }
-    | RETORNE       { printf("Token: RETORNE | Texto: '%s'\n", yytext); }
-    | VERDADEIRO    { printf("Token: VERDADEIRO | Texto: '%s'\n", yytext); }
-    | FALSO         { printf("Token: FALSO | Texto: '%s'\n", yytext); }
-    | E             { printf("Token: E | Texto: '%s'\n", yytext); }
-    | OU            { printf("Token: OU | Texto: '%s'\n", yytext); }
-    | NAO           { printf("Token: NAO | Texto: '%s'\n", yytext); }
-    | SE            { printf("Token: SE | Texto: '%s'\n", yytext); }
-    | ENTAO         { printf("Token: ENTAO | Texto: '%s'\n", yytext); }
-    | SENAO         { printf("Token: SENAO | Texto: '%s'\n", yytext); }
-    | FIMSE         { printf("Token: FIMSE | Texto: '%s'\n", yytext); }
-    | ENQUANTO      { printf("Token: ENQUANTO | Texto: '%s'\n", yytext); }
-    | FACA          { printf("Token: FACA | Texto: '%s'\n", yytext); }
-    | FIMENQUANTO   { printf("Token: FIMENQUANTO | Texto: '%s'\n", yytext); }
-    | PARA          { printf("Token: PARA | Texto: '%s'\n", yytext); }
-    | ATE           { printf("Token: ATE | Texto: '%s'\n", yytext); }
-    | FIMPARA       { printf("Token: FIMPARA | Texto: '%s'\n", yytext); }
-    | ATRIBUICAO    { printf("Token: ATRIBUICAO | Texto: '%s'\n", yytext); }
-    | IGUAL         { printf("Token: IGUAL | Texto: '%s'\n", yytext); }
-    | DIFERENTE     { printf("Token: DIFERENTE | Texto: '%s'\n", yytext); }
-    | MENOR_IGUAL   { printf("Token: MENOR_IGUAL | Texto: '%s'\n", yytext); }
-    | MAIOR_IGUAL   { printf("Token: MAIOR_IGUAL | Texto: '%s'\n", yytext); }
-    | MENOR         { printf("Token: MENOR | Texto: '%s'\n", yytext); }
-    | MAIOR         { printf("Token: MAIOR | Texto: '%s'\n", yytext); }
-    | MAIS          { printf("Token: MAIS | Texto: '%s'\n", yytext); }
-    | MENOS         { printf("Token: MENOS | Texto: '%s'\n", yytext); }
-    | VEZES         { printf("Token: VEZES | Texto: '%s'\n", yytext); }
-    | DIVIDE        { printf("Token: DIVIDE | Texto: '%s'\n", yytext); }
-    | MODULO        { printf("Token: MODULO | Texto: '%s'\n", yytext); }
-    | ABRE_PAR      { printf("Token: ABRE_PAR | Texto: '%s'\n", yytext); }
-    | FECHA_PAR     { printf("Token: FECHA_PAR | Texto: '%s'\n", yytext); }
-    | VIRGULA       { printf("Token: VIRGULA | Texto: '%s'\n", yytext); }
-    | PONTO_VIRGULA { printf("Token: PONTO_VIRGULA | Texto: '%s'\n", yytext); }
-    | DOIS_PONTOS   { printf("Token: DOIS_PONTOS | Texto: '%s'\n", yytext); }
-    | STRING        { printf("Token: STRING | Valor: '%s'\n", $1); }
-    | REAL          { printf("Token: REAL | Valor: '%.2f'\n", $1); }
-    | INTEIRO       { printf("Token: INTEIRO | Valor: '%d'\n", $1); }
-    | IDENTIFICADOR { printf("Token: IDENTIFICADOR | Texto: '%s'\n", $1); }
-    ;
+void yyerror(const char *s) {
+    fprintf(stderr, "Erro na linha %d: %s\n", yylineno, s);
+    qtd_erros++;
 
-%%
+}
 
-/* 4. Função principal para rodar o teste */
-int main(int argc, char **argv) {
+int main(int argc, char *argv[]) {
     if (argc > 1) {
-        FILE *file = fopen(argv[1], "r");
-        if (!file) {
-            perror("Erro ao abrir arquivo de teste");
+        FILE *f = fopen(argv[1], "r");
+        if (!f) {
+            perror("Erro ao abrir arquivo");
             return 1;
         }
-        yyin = file;
+        yyin = f;
     } else {
-        printf("Digite o código Portugol (Pressione Ctrl+D para encerrar):\n");
+        yyin = stdin;
     }
 
-    // Executa o analisador (que chama o yylex por baixo dos panos)
-    yyparse();
-    return 0;
+    printf("=== PARSER PORTUGOL STUDIO UNIVALI ===\n\n");
+
+    int resultado = yyparse();
+
+    if (resultado == 0) {
+        printf("\n\n Parse concluído com sucesso!\n");
+    } else {
+        printf("\n\n Erros encontrados durante o parse.\n");
+    }
+
+    if (argc > 1) {
+        fclose(yyin);
+    }
+
+    if(qtd_erros){
+        return qtd_erros;
+    }
+
+    return resultado;
 }
 
-// Tratamento de erros sintáticos simples
-void yyerror(const char *s) {
-    fprintf(stderr, "Erro de sintaxe próximo a '%s': %s\n", yytext, s);
-}

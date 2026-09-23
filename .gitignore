@@ -1,3 +1,14 @@
+./compilador
+./lexer/lex.yy.c
+./parser/y.tab.c
+./parser/y.tab.h
+compilador
+lexer/lex.yy.c
+parser/portugol.tab.c
+parser/portugol.tab.h
+parser/portugol.output
+build/
+site/
 site/
 __pycache__/
 *.pyc

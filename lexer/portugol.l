@@ -1,9 +1,11 @@
 %{
-#include "portugol.tab.h"
+#include "../parser/portugol.tab.h"
+/*#include "portugol.tab.h"*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+extern int qtd_erros;
 %}
 
 %option noyywrap
@@ -20,12 +22,15 @@ ESPACO      [ \t\r\n]+
 %%
 
 "//".*          {/*comentario de linha so ignora*/}
-"/*"([^*]|\*+[^*/])*\*+"/"     {/*comentario de bloco so ignora tbm*/}
+"/*"([^*]|\*+[^*/])*\*+"/" {/* ignora comentário de bloco */}
 
+"{"                         { return ABRE_CHAVE; }
+"}"                         { return FECHA_CHAVE; }
 "programa"                  { return PROGRAMA;}
+"inicio"                    { return INICIO; }
 "inclua"                    {return INCLUA;}
 "const"                     {return CONST;}
-"cadeia"                    {return CADEIA;}
+"cadeia"                    {return T_CADEIA;}
 "caracter"                  {return CARACTER;}
 "inteiro"                   { return T_INTEIRO; }
 "real"                      { return T_REAL; }
@@ -53,6 +58,7 @@ ESPACO      [ \t\r\n]+
 "ate"                      { return ATE; }
 "fimpara"                  { return FIMPARA; }
 
+"<-"|":="|"="              { return ATRIBUICAO; }
 "=="                       { return IGUAL; }
 "="                  { return ATRIBUICAO; }
 "!="                       { return DIFERENTE; }
@@ -79,7 +85,7 @@ ESPACO      [ \t\r\n]+
 {ESPACO}                   { /* ignora espaços */ }
 \n                         { /* yylineno já conta a linha */ }
 
-.                          { fprintf(stderr, "Erro léxico: caractere inválido '%s' na linha %d\n", yytext, yylineno); }
+.                          { fprintf(stderr, "Erro léxico: caractere inválido '%s' na linha %d\n", yytext, yylineno); qtd_erros++; }
 
 %%
 

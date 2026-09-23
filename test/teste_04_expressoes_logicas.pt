@@ -1,0 +1,16 @@
+// Teste 04 — Expressoes relacionais e logicas
+// Cobre: ==, !=, <, >, <=, >=, e, ou, nao, verdadeiro, falso
+programa {
+    funcao inicio() {
+        logico r1 = 5 == 5;
+        logico r2 = 3 != 4;
+        logico r3 = 2 < 10;
+        logico r4 = 10 > 2;
+        logico r5 = 5 <= 5;
+        logico r6 = 6 >= 5;
+        logico r7 = verdadeiro e falso;
+        logico r8 = verdadeiro ou falso;
+        logico r9 = nao verdadeiro;
+        escreva(r1);
+    }
+}

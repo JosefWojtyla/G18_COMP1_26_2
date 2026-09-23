@@ -1,0 +1,6 @@
+// Teste 08 — Bloco vazio (apenas a estrutura minima)
+// Cobre: bloco vazio dentro de funcao inicio
+programa {
+    funcao inicio() {
+    }
+}

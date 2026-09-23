@@ -1,0 +1,7 @@
+// Teste ERR02 — Caractere invalido no lexico
+// ESPERADO: erro lexico (FAIL)
+programa {
+    funcao inicio() {
+        inteiro x = 10@;
+    }
+}

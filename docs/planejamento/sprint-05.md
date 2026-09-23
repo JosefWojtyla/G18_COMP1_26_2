@@ -2,13 +2,13 @@
 
 ## Objetivos
 
-- Concluir a análise semântica, tratando coerência de tipos em funções e expressões complexas.
+- 🔲Concluir a análise semântica, tratando coerência de tipos em funções e expressões complexas.
 
-- Desenvolver o gerador de código intermediário (código de 3 endereços) percorrendo a AST.
+- 🔲Desenvolver o gerador de código intermediário (código de 3 endereços) percorrendo a AST.
 
-- Preparar a apresentação focada na evolução estrutural e preencher o formulário.
+- 🔲Preparar a apresentação focada na evolução estrutural e preencher o formulário.
 
-- Apresentação e entrega do **P2 em 09/11**.
+- 🔲Apresentação e entrega do **P2 em 09/11**.
 
 ## Dificuldades
 

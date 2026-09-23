@@ -7,9 +7,22 @@ theme:
   language: pt-BR
 
   palette:
+
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: black
+    accent: grey
+    toggle:
+      icon: material/weather-sunny
+      name: Mudar para modo escuro
+
+  - media: "(prefers-color-scheme: dark)"
     scheme: slate
     primary: black
     accent: grey
+    toggle:
+      icon: material/weather-night
+      name: Mudar para modo claro
 
   features:
     - navigation.tabs

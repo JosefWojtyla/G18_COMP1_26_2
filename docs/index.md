@@ -35,15 +35,10 @@ Ao longo do desenvolvimento serão abordados aspectos relacionados à análise l
 <p><strong>Matrícula:</strong> 251023282</p>
 </div>
 
-<div class="membro">
-<img src="https://github.com/gabriel-octacilio.png" alt="Gabriel">
-<h3><a href="https://github.com/">Gabriel</a></h3>
-<p><strong>Matrícula:</strong> </p>
-</div>
 
 <div class="membro">
-<img src="https://github.com/Zayra-Moraes.png" alt="Zayra">
-<h3><a href="https://github.com/Zayra-Moraes">Zayra</a></h3>
+<img src="https://github.com/Zayra-Moraes.png" alt="Zayra Moraes">
+<h3><a href="https://github.com/Zayra-Moraes">Zayra Moraes</a></h3>
 <p><strong>Matrícula:</strong> 242015989</p>
 </div>
 

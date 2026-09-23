@@ -9,3 +9,7 @@ parser/portugol.tab.h
 parser/portugol.output
 build/
 site/
+site/
+__pycache__/
+*.pyc
+

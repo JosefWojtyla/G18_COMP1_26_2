@@ -60,6 +60,7 @@ ESPACO      [ \t\r\n]+
 
 "<-"|":="|"="              { return ATRIBUICAO; }
 "=="                       { return IGUAL; }
+"="                  { return ATRIBUICAO; }
 "!="                       { return DIFERENTE; }
 "<="                       { return MENOR_IGUAL; }
 ">="                       { return MAIOR_IGUAL; }
@@ -77,8 +78,8 @@ ESPACO      [ \t\r\n]+
 ":"                        { return DOIS_PONTOS; }
 
 \"[^\"]*\"                 { yylval.str = strdup(yytext); return STRING; }
-{NUM_REAL}                 { yylval.real = atof(yytext); return REAL; }
 {NUM_INT}                  { yylval.inteiro = atoi(yytext); return INTEIRO; }
+{NUM_REAL}                 { yylval.real = atof(yytext); return REAL; }
 {IDENTIFICADOR}                       { yylval.str = strdup(yytext); return IDENTIFICADOR; }
 
 {ESPACO}                   { /* ignora espaços */ }

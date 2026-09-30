@@ -41,7 +41,6 @@
 - Operadores aritméticos (+, -, *, /, %)
 - Operadores relacionais (<, >, <=, >=, ==, !=)
 - Operadores lógicos (e, ou, nao)
-- Operadores incremento/decremento (++, --, +=, -=, *=, /=)
 - Identificadores com acentos (português)
 - Números inteiros e reais
 - Strings entre aspas duplas
@@ -54,7 +53,6 @@
 - Estrutura programa { funcao inicio() { ... } }
 - Declaração de variáveis (inteiro x, real y, etc)
 - Atribuição simples (x = 5)
-- Atribuição com operadores (x += 2, x++, etc)
 - Comandos I/O (escreva(), leia())
 - Condicional se/entao/senao (com aninhamento)
 - Repetição enquanto

@@ -80,3 +80,21 @@ Simbolo *buscarSimbolo(TabelaSimbolos *tabela, char *nome){
     return NULL;
 }
 
+void limparTabelaSimbolos(TabelaSimbolos *tabela){
+
+    if(tabela == NULL)
+        return;
+
+    for(int i = 0; i < tabela->count; i++){
+        if(tabela->simbolos[i] != NULL){
+            free(tabela->simbolos[i]->nome);
+            free(tabela->simbolos[i]->tipo);
+            free(tabela->simbolos[i]);
+
+            tabela->simbolos[i] = NULL;
+        }
+    }
+
+    tabela->count = 0; // ? ou deveria decrementar dentro do for? mas iria atingir a logica do for
+    tabela->escopo_atual = 0;
+}

@@ -32,6 +32,9 @@ int verificarDuplicata(TabelaSimbolos *tabela, char *nome, int escopo){
 
 int inserirSimbolo(TabelaSimbolos *tabela, char *nome, char *tipo, int linha, int escopo){
 
+    if(tabela == NULL) 
+        return 0;
+
     if(tabela->count >= 1000)
         return 0;
 
@@ -61,5 +64,19 @@ int inserirSimbolo(TabelaSimbolos *tabela, char *nome, char *tipo, int linha, in
 
 Simbolo *buscarSimbolo(TabelaSimbolos *tabela, char *nome){
 
+    if(tabela == NULL || nome == NULL)
+        return NULL;
+    // na tabela de simbolos, variaveis com o mesmo nome e com escopo diferentes, são guardadas numa ordem:
+    // primeiro vem a global e depois vem as locais.
+    // primeiro devemos buscar a de escopo mais atual
+    // somente rodar um for de trás pra frente
+    for(int i = tabela->count - 1; i >= 0; i--){
+        if(strcmp(tabela->simbolos[i]->nome, nome) == 0){
+            // retornar o simbolo encontrado
+            return tabela->simbolos[i];
+        }
+    }
     
+    return NULL;
 }
+

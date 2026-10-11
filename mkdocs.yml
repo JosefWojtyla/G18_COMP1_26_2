@@ -48,6 +48,7 @@ nav:
       - Análise Semântica: compilador/analise-semantica.md
       - Código Intermediário: compilador/codigo-intermediario.md
       - Código final: compilador/codigo-final.md
+      - Tabela Símbolos: compilador/simbolos.md
       # - Decisões: decisoes.md
 
 

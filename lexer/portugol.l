@@ -57,6 +57,13 @@ ESPACO      [ \t\r\n]+
 "para"                     { return PARA; }
 "ate"                      { return ATE; }
 
+"++"    { return MAIS_MAIS; }
+"--"    { return MENOS_MENOS; }
+"+="    { return MAIS_IGUAL; }
+"-="    { return MENOS_IGUAL; }
+"*="    { return VEZES_IGUAL; }
+"/="    { return DIVIDE_IGUAL; }
+
 "=="                       { return IGUAL; }
 "="                        { return ATRIBUICAO; }
 "!="                       { return DIFERENTE; }

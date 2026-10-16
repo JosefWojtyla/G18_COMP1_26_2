@@ -36,7 +36,7 @@ extern FILE *yyin;
 %token ATRIBUICAO
 %token IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL
 %token MAIS MENOS VEZES DIVIDE MODULO
-%token MAIS_MAIS MENOS_MENOS MAIS_IGUAL MENOS_IGUAL
+%token MAIS_MAIS MENOS_MENOS MAIS_IGUAL MENOS_IGUAL VEZES_IGUAL DIVIDE_IGUAL
 
 
 /* ainda n tem definição na seção debaixo*/
@@ -143,6 +143,10 @@ comando
     | acesso_vetor ATRIBUICAO expressao
     {
         printf("Atribuição em posição de vetor\n");
+    }
+    | para_comando
+    {
+        printf("Comando para\n");
     }
     ;
 
@@ -330,6 +334,56 @@ acesso_vetor
     : IDENTIFICADOR ABRE_COLCH expressao FECHA_COLCH
         {
             printf("Acesso ao vetor %s\n", $1);
+        }
+    ;
+
+inicializacao_para
+    : tipo IDENTIFICADOR ATRIBUICAO expressao
+        {
+            printf("Inicialização do para com declaração de %s\n", $2);
+        }
+    | IDENTIFICADOR ATRIBUICAO expressao
+        {
+            printf("Inicialização do para com variável %s\n", $1);
+        }
+    ;
+
+incremento_para
+    : IDENTIFICADOR MAIS_MAIS
+        {
+            printf("Incremento ++ em %s\n", $1);
+        }
+    | IDENTIFICADOR MENOS_MENOS
+        {
+            printf("Incremento -- em %s\n", $1);
+        }
+    | IDENTIFICADOR MAIS_IGUAL expressao
+        {
+            printf("Incremento += em %s\n", $1);
+        }
+    | IDENTIFICADOR MENOS_IGUAL expressao
+        {
+            printf("Incremento -= em %s\n", $1);
+        }
+    | IDENTIFICADOR VEZES_IGUAL expressao
+        {
+            printf("Incremento *= em %s\n", $1);
+        }
+    | IDENTIFICADOR DIVIDE_IGUAL expressao
+        {
+            printf("Incremento /= em %s\n", $1);
+        }
+    ;
+
+para_comando
+    : PARA ABRE_PAR
+      inicializacao_para PONTO_VIRGULA
+      expressao PONTO_VIRGULA
+      incremento_para
+      FECHA_PAR
+      ABRE_CHAVE bloco FECHA_CHAVE
+        {
+            printf("Laço para reconhecido\n");
         }
     ;
 

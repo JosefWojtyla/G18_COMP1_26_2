@@ -68,14 +68,21 @@ extern FILE *yyin;
  /* Seção de Regras Gramaticais */
 
 programa
-    : PROGRAMA ABRE_CHAVE FUNCAO INICIO ABRE_PAR FECHA_PAR ABRE_CHAVE bloco FECHA_CHAVE FECHA_CHAVE
-        {
-            printf(" Programa reconhecido \n");
-        }
-    | error
-        {
-            yyerror("Erro na estrutura do programa");
-        }
+    : PROGRAMA ABRE_CHAVE
+      lista_funcoes
+      funcao_inicio
+      lista_funcoes
+      FECHA_CHAVE
+    ;
+
+lista_funcoes
+    : /* vazio */
+    | lista_funcoes declaracao_funcao
+    ;
+
+funcao_inicio
+    : FUNCAO INICIO ABRE_PAR FECHA_PAR
+      ABRE_CHAVE bloco FECHA_CHAVE
     ;
 
 
@@ -118,6 +125,14 @@ comando
         {
             printf(" enquanto\n");
         }
+    | RETORNE expressao
+        {
+            printf("Retorno de função reconhecido\n");
+        }
+    | chamada_funcao
+        {
+            printf("Chamada usada como comando\n");
+        }
     | error PONTO_VIRGULA
         {
             yyerror("Comando inválido");
@@ -137,6 +152,20 @@ declaracao
         }
     ;
 
+declaracao_funcao
+    : FUNCAO tipo IDENTIFICADOR
+      ABRE_PAR FECHA_PAR
+      ABRE_CHAVE bloco FECHA_CHAVE
+        {
+            printf("Função %s sem parâmetros reconhecida\n", $3);
+        }
+    | FUNCAO tipo IDENTIFICADOR
+      ABRE_PAR lista_parametros FECHA_PAR
+      ABRE_CHAVE bloco FECHA_CHAVE
+        {
+            printf("Função %s com parâmetros reconhecida\n", $3);
+        }
+    ;
 
 tipo
     : T_INTEIRO     { printf("(tipo: inteiro) "); }
@@ -162,6 +191,19 @@ se_comando
             printf(" se com senao\n");
         }
     ;
+
+lista_parametros
+    : tipo IDENTIFICADOR
+        {
+            printf("Parâmetro %s reconhecido\n", $2);
+        }
+    | lista_parametros VIRGULA tipo IDENTIFICADOR
+        {
+            printf("Parâmetro %s reconhecido\n", $4);
+        }
+    ;
+
+
 
 expressao
     : INTEIRO
@@ -248,6 +290,26 @@ expressao
         {
             printf("(nao) ");
         }
+    | chamada_funcao
+        {
+            printf("Chamada usada como expressão\n");
+        }
+    ;
+
+chamada_funcao
+    : IDENTIFICADOR ABRE_PAR FECHA_PAR
+        {
+            printf("Chamada da função %s sem argumentos\n", $1);
+        }
+    | IDENTIFICADOR ABRE_PAR lista_argumentos FECHA_PAR
+        {
+            printf("Chamada da função %s com argumentos\n", $1);
+        }
+    ;
+
+lista_argumentos
+    : expressao
+    | lista_argumentos VIRGULA expressao
     ;
 
 

@@ -26,6 +26,8 @@ ESPACO      [ \t\r\n]+
 
 "{"                         { return ABRE_CHAVE; }
 "}"                         { return FECHA_CHAVE; }
+"["                         { return ABRE_COLCH; }
+"]"                         { return FECHA_COLCH; }
 "programa"                  { return PROGRAMA;}
 "inicio"                    { return INICIO; }
 "inclua"                    {return INCLUA;}

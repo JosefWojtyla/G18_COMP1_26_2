@@ -31,11 +31,13 @@ extern FILE *yyin;
 %token VERDADEIRO FALSO
 %token E OU NAO
 %token ABRE_PAR FECHA_PAR ABRE_CHAVE FECHA_CHAVE
+%token ABRE_COLCH FECHA_COLCH
 %token VIRGULA PONTO_VIRGULA DOIS_PONTOS
 %token ATRIBUICAO
 %token IGUAL DIFERENTE MENOR MAIOR MENOR_IGUAL MAIOR_IGUAL
 %token MAIS MENOS VEZES DIVIDE MODULO
 %token MAIS_MAIS MENOS_MENOS MAIS_IGUAL MENOS_IGUAL
+
 
 /* ainda n tem definição na seção debaixo*/
 %token INCLUA
@@ -138,6 +140,10 @@ comando
             yyerror("Comando inválido");
             yyerrok;
         }
+    | acesso_vetor ATRIBUICAO expressao
+    {
+        printf("Atribuição em posição de vetor\n");
+    }
     ;
 
 
@@ -149,6 +155,10 @@ declaracao
     | tipo IDENTIFICADOR ATRIBUICAO expressao
         {
             printf("      Declaração de %s com atribuição\n", $2);
+        }
+    | tipo IDENTIFICADOR ABRE_COLCH INTEIRO FECHA_COLCH
+        {
+            printf("Vetor %s de tamanho %d declarado\n", $2, $4);
         }
     ;
 
@@ -294,6 +304,10 @@ expressao
         {
             printf("Chamada usada como expressão\n");
         }
+    | acesso_vetor
+        {
+            printf("Vetor usado em expressão\n");
+        }
     ;
 
 chamada_funcao
@@ -312,6 +326,12 @@ lista_argumentos
     | lista_argumentos VIRGULA expressao
     ;
 
+acesso_vetor
+    : IDENTIFICADOR ABRE_COLCH expressao FECHA_COLCH
+        {
+            printf("Acesso ao vetor %s\n", $1);
+        }
+    ;
 
 /* Ainda falta coisa pra adicionar*/
 

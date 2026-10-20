@@ -38,7 +38,7 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(TARGET): $(FLEX_SRC) $(BISON_SRC) | $(BUILD_DIR)
-	$(CC) -Wall -o $@ $(FLEX_SRC) $(BISON_SRC)
+	$(CC) -Wall -I. -o $@ $(FLEX_SRC) $(BISON_SRC) simbolos.c
 
 # -------------------------------------------------------
 # 4) Executar todos os testes

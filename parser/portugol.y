@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "simbolos.h"
+
+TabelaSimbolos *tabela;
 
 void yyerror(const char *s); /* função de erro */
 extern int yylex(void);        /* função do Flex */
@@ -52,7 +55,7 @@ extern FILE *yyin;
 %token <str> STRING IDENTIFICADOR
 
 
-
+%type <str> tipo
 
 
 /* (opcional por enquanto define a ordem) */
@@ -69,8 +72,14 @@ extern FILE *yyin;
 
  /* Seção de Regras Gramaticais */
 
+declaracoes_globais
+    : /* vazio */
+    | declaracoes_globais declaracao
+    ;
+
 programa
     : PROGRAMA ABRE_CHAVE
+      declaracoes_globais
       lista_funcoes
       funcao_inicio
       lista_funcoes
@@ -84,9 +93,15 @@ lista_funcoes
 
 funcao_inicio
     : FUNCAO INICIO ABRE_PAR FECHA_PAR
-      ABRE_CHAVE bloco FECHA_CHAVE
+      ABRE_CHAVE 
+      {
+          tabela->escopo_atual++;
+      }
+      bloco FECHA_CHAVE
+      {
+          tabela->escopo_atual--;
+      }
     ;
-
 
 
 bloco
@@ -153,12 +168,24 @@ comando
 
 declaracao
     : tipo IDENTIFICADOR
-        {
-            printf("      Declaração de %s\n", $2);
+        {   
+            if(!inserirSimbolo(tabela, $2, $1, yylineno, tabela->escopo_atual)){
+                yyerror("Variável já declarada neste escopo");
+            }         
         }
+
     | tipo IDENTIFICADOR ATRIBUICAO expressao
         {
-            printf("      Declaração de %s com atribuição\n", $2);
+            
+            if(!inserirSimbolo(tabela, $2, $1, yylineno, tabela->escopo_atual)){
+                yyerror("Variável já declarada neste escopo");
+            } else {
+                Simbolo *s = buscarSimbolo(tabela, $2);
+
+                if(s != NULL){
+                    s->inicializado = 1;
+                }
+            }
         }
     | tipo IDENTIFICADOR ABRE_COLCH INTEIRO FECHA_COLCH
         {
@@ -182,10 +209,10 @@ declaracao_funcao
     ;
 
 tipo
-    : T_INTEIRO     { printf("(tipo: inteiro) "); }
-    | T_REAL        { printf("(tipo: real) "); }
-    | T_CADEIA      { printf("(tipo: cadeia) "); }
-    | T_LOGICO      { printf("(tipo: logico) "); }
+    : T_INTEIRO     { $$ = "inteiro"; }
+    | T_REAL        { $$ = "real"; }
+    | T_CADEIA      { $$ = "cadeia"; }
+    | T_LOGICO      { $$ = "logico"; }
     ;
 
 enquanto_comando
@@ -402,10 +429,16 @@ void yyerror(const char *s) {
 }
 
 int main(int argc, char *argv[]) {
+    tabela = malloc(sizeof(TabelaSimbolos));
+    criarTabelaSimbolos(tabela);
+
     if (argc > 1) {
         FILE *f = fopen(argv[1], "r");
         if (!f) {
             perror("Erro ao abrir arquivo");
+            limparTabelaSimbolos(tabela);
+            free(tabela);
+            
             return 1;
         }
         yyin = f;
@@ -425,12 +458,29 @@ int main(int argc, char *argv[]) {
 
     if (argc > 1) {
         fclose(yyin);
+        printf("\n = = = Tabela de Simbolos = = =\n");
+
+        for(int i = 0; i < tabela->count; i++){
+            printf("Nome: %-10s | Tipo: %-8s | Escopo: %d | Linha: %d | Inicializado: %d\n",
+            tabela->simbolos[i]->nome,
+            tabela->simbolos[i]->tipo,
+            tabela->simbolos[i]->escopo,
+            tabela->simbolos[i]->linha_declaracao,
+            tabela->simbolos[i]->inicializado);
+        }
     }
 
     if(qtd_erros){
+
+        limparTabelaSimbolos(tabela);
+        free(tabela);
+        
         return qtd_erros;
     }
 
-    return resultado;
-}
+    limparTabelaSimbolos(tabela);
+    free(tabela);
 
+    return resultado;
+    
+}

@@ -1,0 +1,9 @@
+// Teste ERR05 — Escopo variavel global + local
+
+programa {
+    inteiro x = 5
+    funcao inicio(){
+        
+        inteiro x = 10
+    }
+}

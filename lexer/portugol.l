@@ -12,7 +12,7 @@ extern int qtd_erros;
 %option yylineno
 
 DIGITO      [0-9]
-LETRA       [a-z,A-Zà-úÀ-Ú_]
+LETRA       [a-zA-Zà-úÀ-Ú_]
 IDENTIFICADOR          {LETRA}({LETRA}|{DIGITO})*
 NUM_INT     {DIGITO}+
 NUM_REAL    {DIGITO}+"."{DIGITO}+
@@ -26,6 +26,8 @@ ESPACO      [ \t\r\n]+
 
 "{"                         { return ABRE_CHAVE; }
 "}"                         { return FECHA_CHAVE; }
+"["                         { return ABRE_COLCH; }
+"]"                         { return FECHA_COLCH; }
 "programa"                  { return PROGRAMA;}
 "inicio"                    { return INICIO; }
 "inclua"                    {return INCLUA;}
@@ -55,6 +57,13 @@ ESPACO      [ \t\r\n]+
 "para"                     { return PARA; }
 "ate"                      { return ATE; }
 
+"++"    { return MAIS_MAIS; }
+"--"    { return MENOS_MENOS; }
+"+="    { return MAIS_IGUAL; }
+"-="    { return MENOS_IGUAL; }
+"*="    { return VEZES_IGUAL; }
+"/="    { return DIVIDE_IGUAL; }
+
 "=="                       { return IGUAL; }
 "="                        { return ATRIBUICAO; }
 "!="                       { return DIFERENTE; }
@@ -79,7 +88,6 @@ ESPACO      [ \t\r\n]+
 {IDENTIFICADOR}                       { yylval.str = strdup(yytext); return IDENTIFICADOR; }
 
 {ESPACO}                   { /* ignora espaços */ }
-\n                         { /* yylineno já conta a linha */ }
 
 .                          { fprintf(stderr, "Erro léxico: caractere inválido '%s' na linha %d\n", yytext, yylineno); qtd_erros++; }
 

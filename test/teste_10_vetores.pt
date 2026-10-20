@@ -1,0 +1,8 @@
+programa {
+    funcao inicio() {
+        inteiro numeros[5]
+        real notas[10]
+        cadeia nomes[3]
+        logico estados[2]
+    }
+}

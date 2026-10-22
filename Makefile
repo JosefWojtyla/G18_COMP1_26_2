@@ -51,7 +51,7 @@ test: $(TARGET)
 	@echo "========================================"
 	@pass=0; fail=0; \
 	echo ""; echo "-- Testes validos (devem PASS) --"; \
-	for f in $(TEST_DIR)/teste_[0-9]*.pt; do \
+	for f in $(TEST_DIR)/valid/*.pt; do \
 		printf "  %-40s " "$$f"; \
 		if ./$(TARGET) $$f > /dev/null 2>&1; then \
 			echo "[PASS]"; pass=$$((pass+1)); \
@@ -60,7 +60,7 @@ test: $(TARGET)
 		fi; \
 	done; \
 	echo ""; echo "-- Testes de erro (devem FAIL) --"; \
-	for f in $(TEST_DIR)/teste_err*.pt; do \
+	for f in $(TEST_DIR)/error/*.pt; do \
 		printf "  %-40s " "$$f"; \
 		if ./$(TARGET) $$f > /dev/null 2>&1; then \
 			echo "[FAIL] <- ERRO: deveria rejeitar"; fail=$$((fail+1)); \

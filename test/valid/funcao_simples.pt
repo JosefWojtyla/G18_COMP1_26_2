@@ -1,0 +1,10 @@
+programa{
+    funcao inteiro somar(inteiro a, inteiro b){
+        retorne a + b
+    }
+    funcao inicio(){
+        
+        inteiro soma = somar(2,3)
+        escreva(soma)
+    }
+}

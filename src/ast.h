@@ -36,12 +36,12 @@ struct AstNode{
         } cadeia;
         // logico
         struct{
-            int valor; // 1 pra true e 0 pra false???
+            int valor; // 1 = true e 0 = false
         } logico;
         
         // operação
         struct{
-            char op; // + | - | * | / |
+            char *op; // + , - , * , / 
             AstNode *esq; // subarvore pra esq
             AstNode *dir; // pra dir 
         } op_binaria;
@@ -51,31 +51,34 @@ struct AstNode{
             AstNode *condicao;
             AstNode *entao;
             AstNode *senao; // podendo ser NULL
-        } comando_se;
+        } se;
 
         // enquanto
         struct{
             AstNode *condicao;
             AstNode *entao;
-        } comando_enquanto;
+        } enquanto;
 
         // para
         struct{
             AstNode *inicializa;
             AstNode *condicao;
             AstNode *entao;
-            AstNode *op_inicializa;
-        } comando_se;
+            AstNode *passo;
+        } para;
 
         // retorne
         struct{
-            // ??
-        } comando_retorne;
+            AstNode *expressao; // valor a ser retornado
+        } retorne;
 
         // funcao
         struct{
-            // ??
-        } comando_funcao;
+            char *nome; // nome de identificação da função
+            char *tipo_retorno; // se é "inteiro", "real"...
+            AstNode *parametros; // lista de parametros
+            AstNode *corpo; // bloco de comando da função
+        } funcao;
 
         // não to lembrando de todos...
     } dados;
@@ -92,6 +95,6 @@ AstNode *criar_no_enquanto(AstNode *condicao, AstNode *entao, int linha);
 AstNode *criar_no_para(AstNode *inicializa, AstNode *condicao, AstNode *entao, AstNode *op_inicializa, int linha);
 
 // free na memoria
-void liber_ast(AstNode *no);
+void liberar_ast(AstNode *no);
 
 #endif

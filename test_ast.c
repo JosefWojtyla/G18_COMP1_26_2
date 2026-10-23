@@ -7,7 +7,7 @@ int main(void){
     AstNode *n2 = criar_no_inteiro(20, 1);
     AstNode *soma = criar_no_op_binaria('+', n1, n2, 1);
 
-    printf("Nó raiz criado. Tipo: %d, op: %c\n", soma->tipo, soma->dados.criar_no_op_binaria.op);
+    printf("No raiz criado. Tipo: %d, op: %c\n", soma->tipo, soma->dados.op_binaria.op);
 
     liberar_ast(soma);
 

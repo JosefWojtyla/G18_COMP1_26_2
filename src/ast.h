@@ -44,20 +44,20 @@ struct AstNode{
             char op; // + | - | * | / |
             AstNode *esq; // subarvore pra esq
             AstNode *dir; // pra dir 
-        } op_binaria 
+        } op_binaria;
 
         // se - senao
         struct{
             AstNode *condicao;
             AstNode *entao;
             AstNode *senao; // podendo ser NULL
-        } comando_se
+        } comando_se;
 
         // enquanto
         struct{
             AstNode *condicao;
             AstNode *entao;
-        } comando_enquanto
+        } comando_enquanto;
 
         // para
         struct{
@@ -65,17 +65,17 @@ struct AstNode{
             AstNode *condicao;
             AstNode *entao;
             AstNode *op_inicializa;
-        } comando_se
+        } comando_se;
 
         // retorne
         struct{
             // ??
-        } comando_retorne
+        } comando_retorne;
 
         // funcao
         struct{
             // ??
-        } comando_funcao
+        } comando_funcao;
 
         // não to lembrando de todos...
     } dados;

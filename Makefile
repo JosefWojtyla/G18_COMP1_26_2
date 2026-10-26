@@ -37,8 +37,8 @@ $(FLEX_SRC): $(LEXER_DIR)/portugol.l $(BISON_HDR)
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(TARGET): $(FLEX_SRC) $(BISON_SRC) | $(BUILD_DIR)
-	$(CC) -Wall -I. -o $@ $(FLEX_SRC) $(BISON_SRC) simbolos.c
+$(TARGET): $(FLEX_SRC) $(BISON_SRC) src/ast.c | $(BUILD_DIR)
+	$(CC) -Wall -I. -o $@ $(FLEX_SRC) $(BISON_SRC) simbolos.c src/ast.c
 
 # -------------------------------------------------------
 # 4) Executar todos os testes

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "simbolos.h"
+#include "../src/ast.h"
 
 AstNode *raiz_ast = NULL; 
 
@@ -16,6 +17,10 @@ extern int yylineno;            /* linha atual (do Flex) */
 extern FILE *yyin;
 
 %}
+
+%code requires {
+#include "../src/ast.h"
+}
 
 /* Seção de Declara ções do Bison */
 
@@ -57,8 +62,11 @@ extern FILE *yyin;
 %token <real> REAL
 %token <str> STRING IDENTIFICADOR
 
-%type <no>  programa bloco comando declaracao atribuicao
-%type <no>  expressao se_comando enquanto_comando
+%type <no>  programa declaracoes_globais lista_funcoes funcao_inicio
+%type <no>  declaracao_funcao bloco comando declaracao
+%type <no>  expressao se_comando enquanto_comando lista_parametros
+%type <no>  chamada_funcao lista_argumentos acesso_vetor
+%type <no>  inicializacao_para incremento_para para_comando
 %type <str> tipo
 
 
@@ -77,8 +85,8 @@ extern FILE *yyin;
  /* Seção de Regras Gramaticais */
 
 declaracoes_globais
-    : /* vazio */
-    | declaracoes_globais declaracao
+    : %empty { $$ = NULL; }
+    | declaracoes_globais declaracao { $$ = $1; }
     ;
 
 programa
@@ -88,11 +96,12 @@ programa
       funcao_inicio
       lista_funcoes
       FECHA_CHAVE
+      { raiz_ast = criar_no_bloco($3, criar_no_bloco($4, $5, yylineno), yylineno); $$ = raiz_ast; }
     ;
 
 lista_funcoes
-    : /* vazio */
-    | lista_funcoes declaracao_funcao
+    : %empty { $$ = NULL; }
+    | lista_funcoes declaracao_funcao { $$ = criar_no_bloco($2, $1, yylineno); }
     ;
 
 funcao_inicio
@@ -104,69 +113,51 @@ funcao_inicio
       bloco FECHA_CHAVE
       {
           tabela->escopo_atual--;
+          $$ = $7;
       }
     ;
 
 
 bloco
-    : 
-        {
-            printf(" Bloco vazio\n");
-        }
+    : %empty { $$ = NULL; }
     | bloco comando
         {
-            printf(" Comando adicionado ao bloco\n");
+            $$ = criar_no_bloco($2, $1, yylineno);
         }
     ;
 
 
 
 comando
-    : declaracao 
-        {
-            printf(" Declaração\n");
-        }
+    : declaracao { $$ = $1; }
     | IDENTIFICADOR ATRIBUICAO expressao 
         {
-            printf(" Atribuição a %s\n", $1);
+            $$ = criar_no_atribuicao($1, $3, yylineno);
         }
     | ESCREVA ABRE_PAR expressao FECHA_PAR 
-        {
-            printf(" escreva()\n");
-        }
+        { $$ = criar_no_escreva($3, yylineno); }
     | LEIA ABRE_PAR IDENTIFICADOR FECHA_PAR 
-        {
-            printf(" leia(%s)\n", $3);
-        }
+        { $$ = criar_no_leia($3, yylineno); }
     | se_comando
-        {
-            printf(" se/senao\n");
-        }
+        { $$ = $1; }
     | enquanto_comando
-        {
-            printf(" enquanto\n");
-        }
+        { $$ = $1; }
     | RETORNE expressao
-        {
-            printf("Retorno de função reconhecido\n");
-        }
+        { $$ = criar_no_retorne($2, yylineno); }
     | chamada_funcao
-        {
-            printf("Chamada usada como comando\n");
-        }
+        { $$ = $1; }
     | error PONTO_VIRGULA
         {
             yyerror("Comando inválido");
             yyerrok;
+            $$ = NULL;
         }
     | acesso_vetor ATRIBUICAO expressao
     {
-        printf("Atribuição em posição de vetor\n");
+        $$ = NULL; /* A AST ainda não possui nó de atribuição/acesso a vetor. */
     }
     | para_comando
-    {
-        printf("Comando para\n");
-    }
+        { $$ = $1; }
     ;
 
 
@@ -176,6 +167,7 @@ declaracao
             if(!inserirSimbolo(tabela, $2, $1, yylineno, tabela->escopo_atual)){
                 yyerror("Variável já declarada neste escopo");
             }         
+            $$ = NULL;
         }
 
     | tipo IDENTIFICADOR ATRIBUICAO expressao
@@ -190,10 +182,11 @@ declaracao
                     s->inicializado = 1;
                 }
             }
+            $$ = criar_no_atribuicao($2, $4, yylineno);
         }
     | tipo IDENTIFICADOR ABRE_COLCH INTEIRO FECHA_COLCH
         {
-            printf("Vetor %s de tamanho %d declarado\n", $2, $4);
+            $$ = NULL; /* Não há nó de declaração de vetor no design atual. */
         }
     ;
 
@@ -202,13 +195,13 @@ declaracao_funcao
       ABRE_PAR FECHA_PAR
       ABRE_CHAVE bloco FECHA_CHAVE
         {
-            printf("Função %s sem parâmetros reconhecida\n", $3);
+            $$ = criar_no_funcao($3, $2, NULL, $7, yylineno);
         }
     | FUNCAO tipo IDENTIFICADOR
       ABRE_PAR lista_parametros FECHA_PAR
       ABRE_CHAVE bloco FECHA_CHAVE
         {
-            printf("Função %s com parâmetros reconhecida\n", $3);
+            $$ = criar_no_funcao($3, $2, $5, $8, yylineno);
         }
     ;
 
@@ -222,29 +215,29 @@ tipo
 enquanto_comando
     : ENQUANTO ABRE_PAR expressao FECHA_PAR FACA ABRE_CHAVE bloco FECHA_CHAVE
         {
-            printf(" enquanto\n");
+            $$ = criar_no_enquanto($3, $7, yylineno);
         }
     ;
 
 se_comando
     : SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE bloco FECHA_CHAVE
         {
-            printf(" se sem senao\n");
+            $$ = criar_no_se($3, $7, NULL, yylineno);
         }
     | SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE bloco FECHA_CHAVE SENAO ABRE_CHAVE bloco FECHA_CHAVE
         {
-            printf(" se com senao\n");
+            $$ = criar_no_se($3, $7, $11, yylineno);
         }
     ;
 
 lista_parametros
     : tipo IDENTIFICADOR
         {
-            printf("Parâmetro %s reconhecido\n", $2);
+            $$ = NULL;
         }
     | lista_parametros VIRGULA tipo IDENTIFICADOR
         {
-            printf("Parâmetro %s reconhecido\n", $4);
+            $$ = $1;
         }
     ;
 
@@ -274,7 +267,7 @@ expressao
     | expressao DIVIDE expressao
         { $$ = criar_no_op_binaria("/", $1, $3, yylineno); }
     | expressao MODULO expressao
-        { $$ = criar_no_op_binaria("%%", $1, $3, yylineno); }
+        { $$ = criar_no_op_binaria("%", $1, $3, yylineno); }
     | expressao IGUAL expressao
         { $$ = criar_no_op_binaria("==", $1, $3, yylineno); }
     | expressao DIFERENTE expressao
@@ -288,85 +281,76 @@ expressao
     | expressao MAIOR_IGUAL expressao
         { $$ = criar_no_op_binaria(">=", $1, $3, yylineno); }
     | expressao E expressao
-        {
-            printf("(e) ");
-        }
+        { $$ = criar_no_op_binaria("e", $1, $3, yylineno); }
     | expressao OU expressao
-        {
-            printf("(ou) ");
-        }
+        { $$ = criar_no_op_binaria("ou", $1, $3, yylineno); }
     | NAO expressao
-        {
-            printf("(nao) ");
-        }
+        { $$ = criar_no_op_binaria("nao", NULL, $2, yylineno); }
     | chamada_funcao
-        {
-            printf("Chamada usada como expressão\n");
-        }
+        { $$ = $1; }
     | acesso_vetor
-        {
-            printf("Vetor usado em expressão\n");
-        }
+        { $$ = NULL; /* A AST ainda não representa acesso a vetor. */ }
     ;
 
 chamada_funcao
     : IDENTIFICADOR ABRE_PAR FECHA_PAR
         {
-            printf("Chamada da função %s sem argumentos\n", $1);
+            $$ = criar_no_chamada($1, NULL, yylineno);
         }
     | IDENTIFICADOR ABRE_PAR lista_argumentos FECHA_PAR
         {
-            printf("Chamada da função %s com argumentos\n", $1);
+            $$ = criar_no_chamada($1, $3, yylineno);
         }
     ;
 
 lista_argumentos
-    : expressao
+    : expressao { $$ = criar_no_bloco($1, NULL, yylineno); }
     | lista_argumentos VIRGULA expressao
+        { $$ = criar_no_bloco($3, $1, yylineno); }
     ;
 
 acesso_vetor
     : IDENTIFICADOR ABRE_COLCH expressao FECHA_COLCH
         {
-            printf("Acesso ao vetor %s\n", $1);
+            $$ = NULL; /* A AST ainda não possui nó de acesso a vetor. */
         }
     ;
 
 inicializacao_para
     : tipo IDENTIFICADOR ATRIBUICAO expressao
         {
-            printf("Inicialização do para com declaração de %s\n", $2);
+            $$ = criar_no_atribuicao($2, $4, yylineno);
         }
     | IDENTIFICADOR ATRIBUICAO expressao
         {
-            printf("Inicialização do para com variável %s\n", $1);
+            $$ = criar_no_atribuicao($1, $3, yylineno);
         }
     ;
 
 incremento_para
     : IDENTIFICADOR MAIS_MAIS
         {
-            printf("Incremento ++ em %s\n", $1);
+            $$ = criar_no_atribuicao($1, criar_no_op_binaria("+", criar_no_variavel($1, yylineno), criar_no_inteiro(1, yylineno), yylineno), yylineno);
         }
     | IDENTIFICADOR MENOS_MENOS
         {
-            printf("Incremento -- em %s\n", $1);
+            $$ = criar_no_atribuicao($1, criar_no_op_binaria("-", criar_no_variavel($1, yylineno), criar_no_inteiro(1, yylineno), yylineno), yylineno);
         }
     | IDENTIFICADOR MAIS_IGUAL expressao
         {
-            printf("Incremento += em %s\n", $1);
+            $$ = criar_no_atribuicao($1, criar_no_op_binaria("+", criar_no_variavel($1, yylineno), $3, yylineno), yylineno);
         }
     | IDENTIFICADOR MENOS_IGUAL expressao
         {
-            printf("Incremento -= em %s\n", $1);
+            $$ = criar_no_atribuicao($1, criar_no_op_binaria("-", criar_no_variavel($1, yylineno), $3, yylineno), yylineno);
         }
     | IDENTIFICADOR VEZES_IGUAL expressao
         {
-            printf("Incremento *= em %s\n", $1);
+            $$ = criar_no_atribuicao($1, criar_no_op_binaria("*", criar_no_variavel($1, yylineno), $3, yylineno), yylineno);
         }
     | IDENTIFICADOR DIVIDE_IGUAL expressao
         {
-            printf("Incremento /= em %s\n", $1);
+            $$ = criar_no_atribuicao($1, criar_no_op_binaria("/", criar_no_variavel($1, yylineno), $3, yylineno), yylineno);
         }
     ;
 
@@ -378,7 +362,7 @@ para_comando
       FECHA_PAR
       ABRE_CHAVE bloco FECHA_CHAVE
         {
-            printf("Laço para reconhecido\n");
+            $$ = criar_no_para($3, $5, $10, $7, yylineno);
         }
     ;
 

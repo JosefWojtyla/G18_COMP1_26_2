@@ -1,0 +1,10 @@
+programa {
+    funcao inteiro calcular(inteiro a, inteiro b) {
+        retorne a + b * 2
+    }
+
+    funcao inicio() {
+        inteiro res = calcular(3, 4)
+        escreva(res)
+    }
+}

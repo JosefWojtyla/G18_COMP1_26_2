@@ -1,0 +1,11 @@
+programa {
+    funcao inteiro exibir(inteiro a, real b, cadeia c) {
+        escreva(a)
+        retorne 0
+    }
+
+    funcao inicio() {
+        inteiro status = exibir(1, 2.5, "teste")
+        escreva(status)
+    }
+}

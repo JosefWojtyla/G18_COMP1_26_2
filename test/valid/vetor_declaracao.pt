@@ -1,0 +1,8 @@
+programa {
+    funcao inicio() {
+        inteiro v[10]
+        real notas[5]
+        cadeia nomes[3]
+        logico flags[2]
+    }
+}

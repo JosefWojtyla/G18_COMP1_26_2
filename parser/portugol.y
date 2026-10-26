@@ -6,6 +6,8 @@
 #include <string.h>
 #include "simbolos.h"
 
+AstNode *raiz_ast = NULL; 
+
 TabelaSimbolos *tabela;
 
 void yyerror(const char *s); /* função de erro */
@@ -21,6 +23,7 @@ extern FILE *yyin;
     int inteiro;
     float real;
     char *str;
+    AstNode *no;
 }
 
 
@@ -54,7 +57,8 @@ extern FILE *yyin;
 %token <real> REAL
 %token <str> STRING IDENTIFICADOR
 
-
+%type <no>  programa bloco comando declaracao atribuicao
+%type <no>  expressao se_comando enquanto_comando
 %type <str> tipo
 
 
@@ -248,77 +252,41 @@ lista_parametros
 
 expressao
     : INTEIRO
-        {
-            printf("(inteiro: %d) ", $1);
-        }
+        { $$ = criar_no_inteiro($1, yylineno); }
     | REAL
-        {
-            printf("(real: %.2f) ", $1);
-        }
+        { $$ = criar_no_real($1, yylineno); }
     | STRING
-        {
-            printf("(string: %s) ", $1);
-        }
+        { $$ = criar_no_cadeia($1, yylineno); }
     | IDENTIFICADOR
-        {
-            printf("(var: %s) ", $1);
-        }
+        { $$ = criar_no_variavel($1, yylineno); }
     | VERDADEIRO
-        {
-            printf("(verdadeiro) ");
-        }
+        { $$ = criar_no_logico(1, yylineno); }
     | FALSO
-        {
-            printf("(falso) ");
-        }
+        { $$ = criar_no_logico(0, yylineno); }
     | ABRE_PAR expressao FECHA_PAR
-        {
-            printf("(expr) ");
-        }
+        { $$ = $2; }
     | expressao MAIS expressao
-        {
-            printf("(+) ");
-        }
+        { $$ = criar_no_op_binaria("+", $1, $3, yylineno); }
     | expressao MENOS expressao
-        {
-            printf("(-) ");
-        }
+        { $$ = criar_no_op_binaria("-", $1, $3, yylineno); }
     | expressao VEZES expressao
-        {
-            printf("(*) ");
-        }
+        { $$ = criar_no_op_binaria("*", $1, $3, yylineno); }
     | expressao DIVIDE expressao
-        {
-            printf("(/) ");
-        }
+        { $$ = criar_no_op_binaria("/", $1, $3, yylineno); }
     | expressao MODULO expressao
-        {
-            printf("(%%) ");
-        }
+        { $$ = criar_no_op_binaria("%%", $1, $3, yylineno); }
     | expressao IGUAL expressao
-        {
-            printf("(==) ");
-        }
+        { $$ = criar_no_op_binaria("==", $1, $3, yylineno); }
     | expressao DIFERENTE expressao
-        {
-            printf("(!=) ");
-        }
+        { $$ = criar_no_op_binaria("!=", $1, $3, yylineno); }
     | expressao MENOR expressao
-        {
-            printf("(<) ");
-        }
+        { $$ = criar_no_op_binaria("<", $1, $3, yylineno); }
     | expressao MAIOR expressao
-        {
-            printf("(>) ");
-        }
+        { $$ = criar_no_op_binaria(">", $1, $3, yylineno); }
     | expressao MENOR_IGUAL expressao
-        {
-            printf("(<=) ");
-        }
+        { $$ = criar_no_op_binaria("<=", $1, $3, yylineno); }
     | expressao MAIOR_IGUAL expressao
-        {
-            printf("(>=) ");
-        }
+        { $$ = criar_no_op_binaria(">=", $1, $3, yylineno); }
     | expressao E expressao
         {
             printf("(e) ");

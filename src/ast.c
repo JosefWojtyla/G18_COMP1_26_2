@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "ast.h"
 
 // construtor para inteiro
@@ -46,7 +47,7 @@ AstNode *criar_no_cadeia(char *valor, int linha){
 
     no->tipo = NO_CADEIA;
     no->linha = linha;
-    no->dados.cadeia.valor = valor;
+    no->dados.cadeia.valor = strdup(valor);
     return no; 
 }
 
@@ -78,7 +79,7 @@ AstNode *criar_no_op_binaria(char *op, AstNode *esq, AstNode *dir, int linha){
 
     no->tipo = NO_OP_BINARIA;
     no->linha = linha;
-    no->dados.op_binaria.op = op;
+    no->dados.op_binaria.op = strdup(op);
     no->dados.op_binaria.esq = esq;
     no->dados.op_binaria.dir = dir;
     return no; 
@@ -150,7 +151,7 @@ AstNode *criar_no_atribuicao(char *nome, AstNode *expressao, int linha){
 
     no->tipo = NO_ATRIBUICAO;
     no->linha = linha;
-    no->dados.atribuicao.nome = nome;
+    no->dados.atribuicao.nome = strdup(nome);
     no->dados.atribuicao.expressao = expressao;
     return no; 
 }
@@ -183,8 +184,8 @@ AstNode *criar_no_funcao(char *nome, char *tipo_retorno,AstNode *parametros, Ast
 
     no->tipo = NO_FUNCAO;
     no->linha = linha;
-    no->dados.funcao.nome = nome;
-    no->dados.funcao.tipo_retorno = tipo_retorno;
+    no->dados.funcao.nome = strdup(nome);
+    no->dados.funcao.tipo_retorno = strdup(tipo_retorno);
     no->dados.funcao.parametros = parametros;
     no->dados.funcao.corpo = corpo;
     return no; 
@@ -216,7 +217,7 @@ AstNode *criar_no_variavel(char *nome, int linha){
 
     no->tipo = NO_VARIAVEL;
     no->linha = linha;
-    no->dados.variavel.nome = nome;
+    no->dados.variavel.nome = strdup(nome);
     return no; 
 }
 AstNode *criar_no_escreva(AstNode *expressao, int linha){
@@ -244,7 +245,7 @@ AstNode *criar_no_leia(char *nome, int linha){
 
     no->tipo = NO_LEIA;
     no->linha = linha;
-    no->dados.leia.nome = nome;
+    no->dados.leia.nome = strdup(nome);
     return no; 
 }
 AstNode *criar_no_chamada(char *nome, AstNode *argumentos, int linha){
@@ -258,7 +259,7 @@ AstNode *criar_no_chamada(char *nome, AstNode *argumentos, int linha){
 
     no->tipo = NO_CHAMADA;
     no->linha = linha;
-    no->dados.chamada.nome = nome;
+    no->dados.chamada.nome = strdup(nome);
     no->dados.chamada.argumentos = argumentos;
     return no; 
 }
@@ -277,7 +278,7 @@ void liberar_ast(AstNode *no){
             break;
 
         case NO_CADEIA:
-            // não possui nós filhos
+            free(no->dados.cadeia.valor);
             break;
 
         case NO_LOGICO:
@@ -285,6 +286,7 @@ void liberar_ast(AstNode *no){
             break;
 
         case NO_OP_BINARIA:
+            free(no->dados.op_binaria.op);
             liberar_ast(no->dados.op_binaria.esq);
             liberar_ast(no->dados.op_binaria.dir);
             break;
@@ -311,7 +313,7 @@ void liberar_ast(AstNode *no){
             break;
         
         case NO_ATRIBUICAO:
-            // FILHO: expressao
+            free(no->dados.atribuicao.nome);
             liberar_ast(no->dados.atribuicao.expressao);
             break;
 
@@ -321,7 +323,8 @@ void liberar_ast(AstNode *no){
             break;
 
         case NO_FUNCAO:
-            // FILHOS: parametros, corpo
+            free(no->dados.funcao.nome);
+            free(no->dados.funcao.tipo_retorno);
             liberar_ast(no->dados.funcao.parametros);
             liberar_ast(no->dados.funcao.corpo);
             break;
@@ -333,7 +336,7 @@ void liberar_ast(AstNode *no){
             break;
 
         case NO_VARIAVEL:
-            // NAO POSSUI FILHOS
+            free(no->dados.variavel.nome);
             break;
 
         case NO_ESCREVA:
@@ -342,11 +345,11 @@ void liberar_ast(AstNode *no){
             break;
 
         case NO_LEIA:
-            // NAO POSSUI FILHOS
+            free(no->dados.leia.nome);
             break;
         
         case NO_CHAMADA:
-            // FILHO: argumentos
+            free(no->dados.chamada.nome);
             liberar_ast(no->dados.chamada.argumentos);
             break;
     }

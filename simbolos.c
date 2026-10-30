@@ -98,3 +98,5 @@ void limparTabelaSimbolos(TabelaSimbolos *tabela){
     tabela->count = 0; // ? ou deveria decrementar dentro do for? mas iria atingir a logica do for
     tabela->escopo_atual = 0;
 }
+
+

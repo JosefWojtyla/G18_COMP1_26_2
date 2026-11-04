@@ -142,5 +142,10 @@ AstNode *criar_no_chamada(char *nome, AstNode *argumentos, int linha);
 
 // free na memoria
 void liberar_ast(AstNode *no);
+void ast_liberar(AstNode *raiz);
+
+// impressão da AST com indentação
+void ast_imprimir(AstNode *raiz, int nivel);
+
 
 #endif

@@ -356,3 +356,121 @@ void liberar_ast(AstNode *no){
 
     free(no);
 }
+
+// imprimir 2 espaços para cada nivel de profundidade da arvore
+static void imprimir_recuo(int nivel){
+    for (int i = 0; i < nivel; i++){
+        printf("  ");
+    }
+}
+
+void ast_imprimir(AstNode *no, int nivel){
+    if(no == NULL) return;
+
+    if(no->tipo == NO_BLOCO){
+        ast_imprimir(no->dados.bloco.comando, nivel);
+        ast_imprimir(no->dados.bloco.proximo, nivel);
+        return;
+    }
+
+    imprimir_recuo(nivel);
+
+    switch(no->tipo){
+
+    
+
+        // GRUPO A: não possuem filhos, apenas imprimem seu valor
+        case NO_INTEIRO:
+            printf("[INTEIRO: %d] (linha %d)\n", no->dados.inteiro.valor, no->linha);
+            break;
+        
+        case NO_REAL:
+            printf("[REAL: %f] (linha %d)\n", no->dados.real.valor, no->linha);
+            break;
+
+        case NO_CADEIA:
+            printf("[CADEIA: %s] (linha %d)\n", no->dados.cadeia.valor, no->linha);
+            break;
+
+        case NO_LOGICO:
+            printf("[LOGICO: %s] (linha %d)\n", no->dados.logico.valor ? "verdadeiro" : "falso", no->linha);
+            break;
+
+        case NO_VARIAVEL:
+            printf("[VARIAVEL: %s] (linha %d)\n", no->dados.variavel.nome, no->linha);
+            break;
+
+        case NO_LEIA:
+            printf("[LEIA: %s] (linha %d)\n", no->dados.leia.nome, no->linha);
+            break;
+
+        // GRUPO B: nós de expressão e comandos simples
+        case NO_OP_BINARIA:
+            printf("[OP_BINARIA: %s] (linha %d)\n", no->dados.op_binaria.op, no->linha);
+            ast_imprimir(no->dados.op_binaria.esq, nivel + 1);
+            ast_imprimir(no->dados.op_binaria.dir, nivel + 1);
+            break;
+
+        case NO_ATRIBUICAO:
+            printf("[ATRIBUICAO: %s] (linha %d)\n", no->dados.atribuicao.nome, no->linha);
+            ast_imprimir(no->dados.atribuicao.expressao, nivel + 1);
+            break;
+
+        case NO_ESCREVA: 
+            printf("[ESCREVA] (linha %d)\n", no->linha);
+            ast_imprimir(no->dados.escreva.expressao, nivel + 1);
+            break;
+        
+        case NO_RETORNE:
+            printf("[RETORNE] (linha %d)\n", no->linha);
+            ast_imprimir(no->dados.retorne.expressao, nivel + 1);
+            break;
+
+        case NO_CHAMADA:
+            printf("[CHAMADA: %s] (linha %d)\n", no->dados.chamada.nome, no->linha);
+            ast_imprimir(no->dados.chamada.argumentos, nivel + 1);
+            break;
+
+        // GRUPO C: estruturas de controle e funcoes (se, enquanto, para, funcao)
+        case NO_SE:
+            printf("[SE] (linha %d)\n", no->linha);
+            ast_imprimir(no->dados.se.condicao, nivel + 1);
+            ast_imprimir(no->dados.se.entao, nivel + 1);
+            // Regra de negócio: o bloco 'senao' é opcional (pode ser NULL)
+            if (no->dados.se.senao != NULL) {
+                imprimir_recuo(nivel);
+                printf("[SENAO] (linha %d)\n", no->linha);
+                ast_imprimir(no->dados.se.senao, nivel + 1);
+            }
+            break;
+
+        case NO_ENQUANTO:
+            printf("[ENQUANTO] (linha %d)\n", no->linha);
+            ast_imprimir(no->dados.enquanto.condicao, nivel + 1);
+            ast_imprimir(no->dados.enquanto.entao, nivel + 1);
+            break;
+
+        case NO_PARA:
+            // Siga o mesmo padrão do NO_ENQUANTO:
+            printf("[PARA] (linha %d)\n", no->linha);
+            ast_imprimir(no->dados.para.inicializa, nivel + 1);
+            ast_imprimir(no->dados.para.condicao, nivel + 1);
+            ast_imprimir(no->dados.para.passo, nivel + 1);
+            ast_imprimir(no->dados.para.entao, nivel + 1);
+            break;
+
+        case NO_FUNCAO:
+            printf("[FUNCAO: %s -> %s] (linha %d)\n", no->dados.funcao.nome, no->dados.funcao.tipo_retorno, no->linha);
+            ast_imprimir(no->dados.funcao.parametros, nivel + 1);
+            ast_imprimir(no->dados.funcao.corpo, nivel + 1);
+            break;
+
+        default:
+            break;
+    }
+
+}
+
+void ast_liberar(AstNode *raiz) {
+    liberar_ast(raiz);
+}

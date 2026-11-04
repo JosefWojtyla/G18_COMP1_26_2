@@ -1,0 +1,13 @@
+programa {
+    funcao inicio() {
+        inteiro x = 0
+
+        enquanto(x < 10) faca {
+            se(x == 5) entao {
+                escreva(x)
+            }
+
+            x = x + 1
+        }
+    }
+}

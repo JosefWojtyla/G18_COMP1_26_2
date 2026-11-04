@@ -181,7 +181,8 @@ comando
         { $$ = $1; }
     | acesso_vetor ATRIBUICAO expressao
     {
-        $$ = NULL; /* A AST ainda não possui nó de atribuição/acesso a vetor. */
+        liberar_ast($3);
+        $$ = NULL;
     }
     | para_comando
         { $$ = $1; }
@@ -438,8 +439,20 @@ int main(int argc, char *argv[]) {
     tabela = malloc(sizeof(TabelaSimbolos));
     criarTabelaSimbolos(tabela);
 
-    if (argc > 1) {
-        FILE *f = fopen(argv[1], "r");
+    int exibir_ast = 0;
+    char *caminho_arquivo = NULL;
+
+    // Percorre os argumentos procurando "--ast" ou o nome do arquivo
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--ast") == 0) {
+            exibir_ast = 1;
+        } else {
+            caminho_arquivo = argv[i];
+        }
+    }
+
+    if (caminho_arquivo != NULL) {
+        FILE *f = fopen(caminho_arquivo, "r");
         if (!f) {
             perror("Erro ao abrir arquivo");
             limparTabelaSimbolos(tabela);
@@ -458,11 +471,16 @@ int main(int argc, char *argv[]) {
 
     if (resultado == 0) {
         printf("\n\n Parse concluído com sucesso!\n");
+
+        if(exibir_ast && qtd_erros == 0){
+            printf("\n = = = AST = = =\n");
+            ast_imprimir(raiz_ast, 0);
+        }
     } else {
         printf("\n\n Erros encontrados durante o parse.\n");
     }
 
-    if (argc > 1) {
+    if (caminho_arquivo != NULL) {
         fclose(yyin);
         printf("\n = = = Tabela de Simbolos = = =\n");
 
@@ -478,12 +496,15 @@ int main(int argc, char *argv[]) {
 
     if(qtd_erros){
 
+        ast_liberar(raiz_ast);
+
         limparTabelaSimbolos(tabela);
         free(tabela);
         
         return qtd_erros;
     }
 
+    ast_liberar(raiz_ast);
     limparTabelaSimbolos(tabela);
     free(tabela);
 

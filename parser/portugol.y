@@ -271,15 +271,17 @@ se_comando
 lista_parametros
     : tipo IDENTIFICADOR
         {
+            AstNode *parame = criar_no_parametro($2, $1, yylineno);
+            $$ = adicionar_ao_bloco(NULL, parame, yylineno);
             free($1);
             free($2);
-            $$ = NULL;
         }
     | lista_parametros VIRGULA tipo IDENTIFICADOR
         {
+            AstNode *parame = criar_no_parametro($4, $3, yylineno);
+            $$ = adicionar_ao_bloco($1, parame, yylineno);
             free($3);
             free($4);
-            $$ = $1;
         }
     ;
 

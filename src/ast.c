@@ -191,6 +191,7 @@ AstNode *criar_no_funcao(char *nome, char *tipo_retorno,AstNode *parametros, Ast
     return no; 
 }
 
+// construtor do bloco
 AstNode *criar_no_bloco(AstNode *comando, AstNode *proximo, int linha){
     AstNode *no = (AstNode *)malloc(sizeof(AstNode));
 
@@ -206,6 +207,8 @@ AstNode *criar_no_bloco(AstNode *comando, AstNode *proximo, int linha){
     no->dados.bloco.proximo = proximo;
     return no; 
 }
+
+// construtor variavel
 AstNode *criar_no_variavel(char *nome, int linha){
     AstNode *no = (AstNode *)malloc(sizeof(AstNode));
 
@@ -220,6 +223,8 @@ AstNode *criar_no_variavel(char *nome, int linha){
     no->dados.variavel.nome = strdup(nome);
     return no; 
 }
+
+// construtor para escreva
 AstNode *criar_no_escreva(AstNode *expressao, int linha){
     AstNode *no = (AstNode *)malloc(sizeof(AstNode));
 
@@ -234,6 +239,8 @@ AstNode *criar_no_escreva(AstNode *expressao, int linha){
     no->dados.escreva.expressao = expressao;
     return no; 
 }
+
+// construtor para leia
 AstNode *criar_no_leia(char *nome, int linha){
     AstNode *no = (AstNode *)malloc(sizeof(AstNode));
 
@@ -248,6 +255,8 @@ AstNode *criar_no_leia(char *nome, int linha){
     no->dados.leia.nome = strdup(nome);
     return no; 
 }
+
+// construtor para chamada
 AstNode *criar_no_chamada(char *nome, AstNode *argumentos, int linha){
     AstNode *no = (AstNode *)malloc(sizeof(AstNode));
 
@@ -260,8 +269,24 @@ AstNode *criar_no_chamada(char *nome, AstNode *argumentos, int linha){
     no->tipo = NO_CHAMADA;
     no->linha = linha;
     no->dados.chamada.nome = strdup(nome);
-    no->dados.chamada.argumentos = argumentos;
+    no->dados.chamada.argumentos = argumentos; //pq aqui não precisa ser passado com strdup()?
     return no; 
+}
+
+AstNode *criar_no_parametro(char *nome, char *tipo_dado, int linha){
+    AstNode *no = (AstNode *)malloc(sizeof(AstNode));
+
+    // validar falha na alocação
+    if(!no){
+        perror("Erro de alocação de memória para AstNode");
+        exit(EXIT_FAILURE);
+    }
+
+    no->tipo = NO_PARAMETRO;
+    no->linha = linha;
+    no->dados.parametro.nome = strdup(nome);
+    no->dados.parametro.tipo_dado = strdup(tipo_dado);
+    return no;
 }
 
 // destrutor
@@ -352,6 +377,11 @@ void liberar_ast(AstNode *no){
             free(no->dados.chamada.nome);
             liberar_ast(no->dados.chamada.argumentos);
             break;
+
+        case NO_PARAMETRO:
+            free(no->dados.parametro.nome);
+            free(no->dados.parametro.tipo_dado);
+            break;
     }
 
     free(no);
@@ -376,9 +406,6 @@ void ast_imprimir(AstNode *no, int nivel){
     imprimir_recuo(nivel);
 
     switch(no->tipo){
-
-    
-
         // GRUPO A: não possuem filhos, apenas imprimem seu valor
         case NO_INTEIRO:
             printf("[INTEIRO: %d] (linha %d)\n", no->dados.inteiro.valor, no->linha);
@@ -402,6 +429,10 @@ void ast_imprimir(AstNode *no, int nivel){
 
         case NO_LEIA:
             printf("[LEIA: %s] (linha %d)\n", no->dados.leia.nome, no->linha);
+            break;
+
+        case NO_PARAMETRO:
+            printf("[PARAMETRO: %s %s] (linha %d)\n", no->dados.parametro.tipo_dado, no->dados.parametro.nome, no->linha);
             break;
 
         // GRUPO B: nós de expressão e comandos simples

@@ -124,7 +124,8 @@ struct AstNode{
         struct {
             char *nome;
             char *tipo_dado;
-        } parametro:
+        } parametro;
+        
     } dados;
 };
 

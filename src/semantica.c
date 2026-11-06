@@ -1,3 +1,11 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "ast.h"
+#include "simbolos.h"
+
+extern int qtd_erros;
+
 const char *inferir_tipo(AstNode *no, TabelaSimbolos *tabela){
     if(no == NULL) return NULL;
 
@@ -16,15 +24,16 @@ const char *inferir_tipo(AstNode *no, TabelaSimbolos *tabela){
 
             if(!s->inicializado){
                 fprintf(stderr, "Aviso na linha %d: Variavel '%s' usada sem ser inicializada.\n", no->linha, no->dados.variavel.nome);
-                return s->tipo;
             }
+            return s->tipo;
         }
 
             case NO_CHAMADA: {
-                Simbolo *s = buscarSimbolo(tabela, no->dados.chamada.nome)
+                Simbolo *s = buscarSimbolo(tabela, no->dados.chamada.nome);
                 if(s == NULL){
                     fprintf(stderr, "Erro semântico: função não declarada.\n");
                     qtd_erros++;
+                    return NULL;
                 } else {
                     return s->tipo;
                 }
@@ -34,14 +43,42 @@ const char *inferir_tipo(AstNode *no, TabelaSimbolos *tabela){
             const char *t_esq = inferir_tipo(no->dados.op_binaria.esq, tabela);
             const char *t_dir = inferir_tipo(no->dados.op_binaria.dir, tabela);
             char *op = no->dados.op_binaria.op;
-            // 1. Operador unário "nao": exige t_dir == "logico", retorna "logico"
-            // 2. Operadores lógicos ("e", "ou"): exigem t_esq == "logico" e t_dir == "logico", retornam "logico"
-            // 3. Relacionais ("<", ">", "<=", ">=", "==", "!="): retornam "logico"
-            // 4. Aritméticos ("+", "-", "*", "/", "%"):
-            //    - Se ambos forem "inteiro" -> retorna "inteiro"
-            //    - Se um for "real" e outro "inteiro" ou "real" -> retorna "real" (ex: 1 + 2.5 -> "real")
-            //    - Caso contrário -> emite erro indicando tipo esperado e encontrado!
-            // nao entendi como implementar
+            
+            if(strcmp(op, "nao") == 0){
+                if(t_dir == NULL) return NULL;
+
+                if(strcmp(t_dir, "logico") != 0){
+                    fprintf(stderr, "Erro semantico na linha %d: Operador 'nao' espera 'logico', mas recebeu '%s'.\n", no->linha, t_dir);
+                    qtd_erros++;
+
+                }
+                return "logico";
+            }
+            if (t_esq == NULL || t_dir == NULL) return NULL;
+
+            if(strcmp(op, "e") == 0 || strcmp(op, "ou") == 0){
+                if(strcmp(t_esq, "logico") != 0 || strcmp(t_dir, "logico") != 0){
+                    fprintf(stderr, "Erro semantico na linha %d: Operador '%s' espera tipo 'logico', mas encontrou '%s' e '%s'.\n", no->linha, op, t_esq, t_dir);
+                    qtd_erros++;
+                }
+                return "logico";
+            }
+
+            if (strcmp(op, "<") == 0 || strcmp(op, ">") == 0 || strcmp(op, "<=") == 0 || strcmp(op, ">=") == 0 || strcmp(op, "==") == 0 || strcmp(op, "!=") == 0){
+                return "logico";
+            }
+
+            if(strcmp(t_esq, "inteiro") == 0 && strcmp(t_dir, "inteiro") == 0){
+                return "inteiro";
+            }
+
+            if((strcmp(t_esq, "inteiro") == 0 || strcmp(t_esq, "real") == 0) && (strcmp(t_dir, "inteiro") == 0 || strcmp(t_dir, "real") == 0)){
+                return "real";
+            }
+
+                fprintf(stderr, "Erro semantico na linha %d: Operacao '%s' esperava tipos numericos ('inteiro' ou 'real'), mas encontrou '%s' e '%s'.\n", no->linha, op, t_esq, t_dir);
+                qtd_erros++;
+                return NULL;
             }
         
             default:

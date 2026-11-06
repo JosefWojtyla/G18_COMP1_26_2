@@ -22,7 +22,7 @@ int verificarDuplicata(TabelaSimbolos *tabela, char *nome, int escopo){
     }
     // um simbolo só é duplicado se ele tiver o mesmo nome e tiver no mesmo escopo do que está na tabela
     for(int i = 0; i < tabela->count; i++){
-        if(strcmp(tabela->simbolos[i]->nome, nome) == 0 && tabela->simbolos[i]->escopo == escopo){
+        if(tabela->simbolos[i]->ativo && strcmp(tabela->simbolos[i]->nome, nome) == 0 && tabela->simbolos[i]->escopo == escopo){
             return 1;
         }
     }
@@ -113,7 +113,7 @@ void fecharEscopo(TabelaSimbolos *tabela){
     for(int i = 0; i < tabela->count; i++){
         if(tabela->simbolos[i]->ativo && (tabela->simbolos[i]->escopo == tabela->escopo_atual)){
             tabela->simbolos[i]->ativo = 0;
-            tabela->escopo_atual--;
         }
     }
+    tabela->escopo_atual--;
 }

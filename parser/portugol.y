@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "simbolos.h"
+#include "../simbolos.h"
 #include "../src/ast.h"
 
 AstNode *raiz_ast = NULL; 
@@ -140,11 +140,11 @@ funcao_inicio
     : FUNCAO INICIO ABRE_PAR FECHA_PAR
       ABRE_CHAVE 
       {
-          tabela->escopo_atual++;
+          abrirEscopo(tabela);
       }
       bloco FECHA_CHAVE
       {
-          tabela->escopo_atual--;
+          fecharEscopo(tabela);
           $$ = $7;
       }
     ;
@@ -232,16 +232,20 @@ declaracao_funcao
         abrirEscopo(tabela);
       } bloco FECHA_CHAVE
         {
-            fechaEscopo(tabela);
+            fecharEscopo(tabela);
             $$ = criar_no_funcao($3, $2, NULL, $8, yylineno);
             free($2);
             free($3);
         }
     | FUNCAO tipo IDENTIFICADOR
       ABRE_PAR lista_parametros FECHA_PAR
-      ABRE_CHAVE bloco FECHA_CHAVE
+      ABRE_CHAVE {
+          inserirSimbolo(tabela, $3, $2, yylineno, 0);
+          abrirEscopo(tabela);
+      } bloco FECHA_CHAVE
         {
-            $$ = criar_no_funcao($3, $2, $5, $8, yylineno);
+            fecharEscopo(tabela);
+            $$ = criar_no_funcao($3, $2, $5, $9, yylineno); // bloco virou $9!
             free($2);
             free($3);
         }
@@ -276,7 +280,7 @@ lista_parametros
     : tipo IDENTIFICADOR
         {
             AstNode *parame = criar_no_parametro($2, $1, yylineno);
-            if(!inserirSimbolo(tabela, $2, $1, yylineno, tabela->escopo_atual + 1)){
+            if(!inserirSimbolo(tabela, $4, $3, yylineno, tabela->escopo_atual + 1)){
                 yyerror("Parametro ja declarado neste escopo");
             } else {
                 Simbolo *s = buscarSimbolo(tabela, $2);

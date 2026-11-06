@@ -48,7 +48,7 @@ Escolhemos para que o compilador faça a tradução direta dos seguintes tipos p
 
 - **Funções:** suporte a funções definidas pelo usuário, aceitando parâmetros tipados, retorno de valores, escopo local de variáveis e chamadas recursivas.
 
-- **Vetores:** suporte restrito a vetores *unidimensionais* com tamanho declarado na inicialização e acesso via índice.
+- **Vetores (Suporte Parcial — Léxico/Sintático):** o reconhecimento léxico e as regras gramaticais para vetores unidimensionais (`inteiro v[10]`, `v[i] = x` e `v[i]`) foram implementados e validados no Parser, porém a construção de nós na AST, análise semântica e geração de código em Python não incluem vetores por decisão de escopo da equipe.
 
 ## Elementos Léxicos Suportados
 

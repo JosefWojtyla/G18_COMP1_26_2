@@ -17,7 +17,8 @@ typedef enum{
     NO_VARIAVEL,
     NO_ESCREVA,
     NO_LEIA,
-    NO_CHAMADA
+    NO_CHAMADA,
+    NO_PARAMETRO
 } TipoNo;
 
 typedef struct AstNode AstNode;
@@ -119,6 +120,12 @@ struct AstNode{
             AstNode *argumentos; // Lista de expressões passadas
         } chamada;
 
+        // parametros da função
+        struct {
+            char *nome;
+            char *tipo_dado;
+        } parametro;
+        
     } dados;
 };
 
@@ -139,6 +146,7 @@ AstNode *criar_no_variavel(char *nome, int linha);
 AstNode *criar_no_escreva(AstNode *expressao, int linha);
 AstNode *criar_no_leia(char *nome, int linha);
 AstNode *criar_no_chamada(char *nome, AstNode *argumentos, int linha);
+AstNode *criar_no_parametro(char *nome, char *tipo_dado, int linha);
 
 // free na memoria
 void liberar_ast(AstNode *no);

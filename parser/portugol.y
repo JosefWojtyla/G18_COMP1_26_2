@@ -227,9 +227,13 @@ declaracao
 declaracao_funcao
     : FUNCAO tipo IDENTIFICADOR
       ABRE_PAR FECHA_PAR
-      ABRE_CHAVE bloco FECHA_CHAVE
+      ABRE_CHAVE{
+        inserirSimbolo(tabela, $3, $2, yylineno, 0);
+        abrirEscopo(tabela);
+      } bloco FECHA_CHAVE
         {
-            $$ = criar_no_funcao($3, $2, NULL, $7, yylineno);
+            fechaEscopo(tabela);
+            $$ = criar_no_funcao($3, $2, NULL, $8, yylineno);
             free($2);
             free($3);
         }
@@ -272,6 +276,12 @@ lista_parametros
     : tipo IDENTIFICADOR
         {
             AstNode *parame = criar_no_parametro($2, $1, yylineno);
+            if(!inserirSimbolo(tabela, $2, $1, yylineno, tabela->escopo_atual + 1)){
+                yyerror("Parametro ja declarado neste escopo");
+            } else {
+                Simbolo *s = buscarSimbolo(tabela, $2);
+                if(s) s->inicializado = 1;
+            }
             $$ = adicionar_ao_bloco(NULL, parame, yylineno);
             free($1);
             free($2);

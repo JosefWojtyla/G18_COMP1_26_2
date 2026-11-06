@@ -9,6 +9,7 @@ typedef struct{
     int linha_declaracao; // linha onde foi declarado
     int escopo; //0 = global, 1+ = local (nivel)
     int inicializado; // 1 se foi inicializado, 0 c.c.
+    int ativo; // 1 se escopo da variavel ainda está aberto, 0 se já tá fechado
     char *valor_padrao; // valor padrão se não inicializado 
 } Simbolo;
 
@@ -24,5 +25,7 @@ int inserirSimbolo(TabelaSimbolos *tabela, char *nome, char *tipo, int linha, in
 Simbolo *buscarSimbolo(TabelaSimbolos *tabela, char *nome);
 int verificarDuplicata(TabelaSimbolos *tabela, char *nome, int escopo);
 void limparTabelaSimbolos(TabelaSimbolos *tabela);
+void abrirEscopo(TabelaSimbolos *tabela);
+void fecharEscopo(TabelaSimbolos *tabela);
 
 #endif

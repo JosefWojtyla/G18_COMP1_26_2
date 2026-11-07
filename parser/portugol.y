@@ -240,7 +240,6 @@ declaracao
             }
             verificar_atribuicao($1, $4, yylineno, tabela);
             $$ = criar_no_atribuicao($2, $4, yylineno);
-            $$ = criar_no_atribuicao($2, $4, yylineno);
             free($1);
             free($2);
         }
@@ -331,10 +330,10 @@ lista_parametros
     : tipo IDENTIFICADOR
         {
             AstNode *parame = criar_no_parametro($2, $1, yylineno);
-            if(!inserirSimbolo(tabela, $4, $3, yylineno, tabela->escopo_atual + 1)){
+            if(!inserirSimbolo(tabela, $2, $1, yylineno, tabela->escopo_atual + 1)){
                 yyerror("Parametro ja declarado neste escopo");
             } else {
-                Simbolo *s = buscarSimbolo(tabela, $4);
+                Simbolo *s = buscarSimbolo(tabela, $2);
                 if(s) s->inicializado = 1;
             }
             $$ = adicionar_ao_bloco(NULL, parame, yylineno);
@@ -345,7 +344,10 @@ lista_parametros
         {
             AstNode *parame = criar_no_parametro($4, $3, yylineno);
             if(!inserirSimbolo(tabela, $4, $3, yylineno, tabela->escopo_atual + 1)){
-                s->inicializado = 1;
+                yyerror("Parametro ja declarado neste escopo");
+            } else {
+                Simbolo *s = buscarSimbolo(tabela, $4);
+                if(s) s->inicializado = 1;
             }
             $$ = adicionar_ao_bloco($1, parame, yylineno);
             free($3);
@@ -435,12 +437,26 @@ acesso_vetor
 inicializacao_para
     : tipo IDENTIFICADOR ATRIBUICAO expressao
         {
+            if(!inserirSimbolo(tabela, $2, $1, yylineno, tabela->escopo_atual)){
+                yyerror("Variável já declarada neste escopo");
+            } else {
+                Simbolo *s = buscarSimbolo(tabela, $2);
+                if(s) s->inicializado = 1;
+            }
+            verificar_atribuicao($1, $4, yylineno, tabela);
             $$ = criar_no_atribuicao($2, $4, yylineno);
             free($1);
             free($2);
         }
     | IDENTIFICADOR ATRIBUICAO expressao
         {
+            Simbolo *s = buscarSimbolo(tabela, $1);
+            if(s == NULL){
+                yyerror("Variável usada sem declaração");
+            } else {
+                verificar_atribuicao(s->tipo, $3, yylineno, tabela);
+                s->inicializado = 1;
+            }
             $$ = criar_no_atribuicao($1, $3, yylineno);
             free($1);
         }
@@ -481,13 +497,18 @@ incremento_para
 
 para_comando
     : PARA ABRE_PAR
+      {
+          abrirEscopo(tabela);
+      }
       inicializacao_para PONTO_VIRGULA
       expressao PONTO_VIRGULA
       incremento_para
       FECHA_PAR
       ABRE_CHAVE bloco FECHA_CHAVE
         {
-            $$ = criar_no_para($3, $5, $10, $7, yylineno);
+            verificar_condicao($6, yylineno, tabela);
+            fecharEscopo(tabela);
+            $$ = criar_no_para($4, $6, $11, $8, yylineno);
         }
     ;
 

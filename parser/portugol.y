@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../simbolos.h"
+#include "../src/simbolos.h"
 #include "../src/ast.h"
 
 AstNode *raiz_ast = NULL; 
@@ -92,6 +92,7 @@ static AstNode *concatenar_blocos(AstNode *primeiro, AstNode *segundo) {
 %type <no>  programa declaracoes_globais lista_funcoes funcao_inicio
 %type <no>  declaracao_funcao bloco comando declaracao
 %type <no>  expressao se_comando enquanto_comando lista_parametros
+%type <no>  expressao se_comando senao_opcional enquanto_comando lista_parametros
 %type <no>  chamada_funcao lista_argumentos acesso_vetor
 %type <no>  inicializacao_para incremento_para para_comando
 %type <str> tipo
@@ -303,26 +304,28 @@ se_comando
         {
             verificar_condicao($3, yylineno, tabela);
             abrirEscopo(tabela);
-        } 
-        bloco FECHA_CHAVE
-        {
-            fecharEscopo(tabela);
-            $$ = criar_no_se($3, $8, NULL, yylineno);
         }
-    | SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE
-        {
-            verificar_condicao($3, yylineno, tabela);
-            abrirEscopo(tabela);
-        } 
-        bloco FECHA_CHAVE SENAO ABRE_CHAVE
+      bloco FECHA_CHAVE
         {
             fecharEscopo(tabela);
+        }
+      senao_opcional
+        {
+            $$ = criar_no_se($3, $8, $11, yylineno);
+        }
+    ;
+
+senao_opcional
+    : %empty
+        { $$ = NULL; }
+    | SENAO ABRE_CHAVE
+        {
             abrirEscopo(tabela);
-        } 
-        bloco FECHA_CHAVE
+        }
+      bloco FECHA_CHAVE
         {
             fecharEscopo(tabela);
-            $$ = criar_no_se($3, $8, $13, yylineno);
+            $$ = $4;
         }
     ;
 

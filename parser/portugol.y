@@ -164,21 +164,47 @@ comando
     : declaracao { $$ = $1; }
     | IDENTIFICADOR ATRIBUICAO expressao 
         {
+            Simbolo *s = buscarSimbolo(tabela, $1);
+            if (s == NULL) {
+                yyerror("Variável usada sem declaração");
+            } else {
+                verificar_atribuicao(s->tipo, $3, yylineno, tabela);
+                s->inicializado = 1;
+            }
+
             $$ = criar_no_atribuicao($1, $3, yylineno);
             free($1);
         }
     | ESCREVA ABRE_PAR expressao FECHA_PAR 
-        { $$ = criar_no_escreva($3, yylineno); }
+        { 
+            inferir_tipo($3, tabela);
+            $$ = criar_no_escreva($3, yylineno); 
+        }
     | LEIA ABRE_PAR IDENTIFICADOR FECHA_PAR 
-        { $$ = criar_no_leia($3, yylineno); free($3); }
+        { 
+            Simbolo *s = buscarSimbolo(tabela, $3);
+            if(s == NULL){
+                yyerror("Variavel usasda sem declaracao.");
+            } else {
+                s->inicializado = 1;
+            }
+            $$ = criar_no_leia($3, yylineno); 
+            free($3);
+        }
     | se_comando
         { $$ = $1; }
     | enquanto_comando
         { $$ = $1; }
     | RETORNE expressao
-        { $$ = criar_no_retorne($2, yylineno); }
+        { 
+            inferir_tipo($2, tabela);
+            $$ = criar_no_retorne($2, yylineno); 
+        }
     | chamada_funcao
-        { $$ = $1; }
+        {
+            inferir_tipo($1, tabela); 
+            $$ = $1; 
+        }
     | acesso_vetor ATRIBUICAO expressao
     {
         liberar_ast($3);
@@ -212,6 +238,8 @@ declaracao
                     s->inicializado = 1;
                 }
             }
+            verificar_atribuicao($1, $4, yylineno, tabela);
+            $$ = criar_no_atribuicao($2, $4, yylineno);
             $$ = criar_no_atribuicao($2, $4, yylineno);
             free($1);
             free($2);
@@ -259,20 +287,43 @@ tipo
     ;
 
 enquanto_comando
-    : ENQUANTO ABRE_PAR expressao FECHA_PAR FACA ABRE_CHAVE bloco FECHA_CHAVE
+    : ENQUANTO ABRE_PAR expressao FECHA_PAR FACA ABRE_CHAVE
         {
-            $$ = criar_no_enquanto($3, $7, yylineno);
+            verificar_condicao($3, yylineno, tabela);
+            abrirEscopo(tabela);
+        } 
+        bloco FECHA_CHAVE
+        {
+            fecharEscopo(tabela);
+            $$ = criar_no_enquanto($3, $8, yylineno);
         }
     ;
 
 se_comando
-    : SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE bloco FECHA_CHAVE
+    : SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE
         {
-            $$ = criar_no_se($3, $7, NULL, yylineno);
+            verificar_condicao($3, yylineno, tabela);
+            abrirEscopo(tabela);
+        } 
+        bloco FECHA_CHAVE
+        {
+            fecharEscopo(tabela);
+            $$ = criar_no_se($3, $8, NULL, yylineno);
         }
-    | SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE bloco FECHA_CHAVE SENAO ABRE_CHAVE bloco FECHA_CHAVE
+    | SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE
         {
-            $$ = criar_no_se($3, $7, $11, yylineno);
+            verificar_condicao($3, yylineno, tabela);
+            abrirEscopo(tabela);
+        } 
+        bloco FECHA_CHAVE SENAO ABRE_CHAVE
+        {
+            fecharEscopo(tabela);
+            abrirEscopo(tabela);
+        } 
+        bloco FECHA_CHAVE
+        {
+            fecharEscopo(tabela);
+            $$ = criar_no_se($3, $8, $13, yylineno);
         }
     ;
 
@@ -283,7 +334,7 @@ lista_parametros
             if(!inserirSimbolo(tabela, $4, $3, yylineno, tabela->escopo_atual + 1)){
                 yyerror("Parametro ja declarado neste escopo");
             } else {
-                Simbolo *s = buscarSimbolo(tabela, $2);
+                Simbolo *s = buscarSimbolo(tabela, $4);
                 if(s) s->inicializado = 1;
             }
             $$ = adicionar_ao_bloco(NULL, parame, yylineno);
@@ -293,6 +344,9 @@ lista_parametros
     | lista_parametros VIRGULA tipo IDENTIFICADOR
         {
             AstNode *parame = criar_no_parametro($4, $3, yylineno);
+            if(!inserirSimbolo(tabela, $4, $3, yylineno, tabela->escopo_atual + 1)){
+                s->inicializado = 1;
+            }
             $$ = adicionar_ao_bloco($1, parame, yylineno);
             free($3);
             free($4);

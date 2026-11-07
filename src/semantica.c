@@ -86,3 +86,29 @@ const char *inferir_tipo(AstNode *no, TabelaSimbolos *tabela){
     
     }
 }
+
+void verificar_atribuicao(const char *tipo_var, AstNode *expressao, int linha, TabelaSimbolos *tabela){
+    const char *tipo_expr = inferir_tipo(expressao, tabela);
+
+    if(tipo_var == NULL || tipo_expr == NULL) return;
+
+    if(strcmp(tipo_var, tipo_expr) == 0) return;
+
+    if(strcmp(tipo_var, "real") == 0 && strcmp(tipo_expr, "inteiro") == 0) return;
+
+    fprintf(stderr, "Erro semantico na linha %d: Tipo incompativel na atribuicao. Esperado '%s', mas encontrado '%s'.\n",
+    linha, tipo_var, tipo_expr);
+    qtd_erros++;
+}
+
+void verificar_condicao(AstNode *condicao, int linha, TabelaSimbolos *tabela){
+    const char *tipo_cond = inferir_tipo(condicao, tabela);
+    
+    if(tipo_cond == NULL) return;
+
+    if(strcmp(tipo_cond, "logico") != 0){
+        fprintf(stderr, "Erro semantico na linha %d: Condicao invalida. Esperado 'logico', mas encontrado '%s'.\n",
+        linha, tipo_cond);
+        qtd_erros++;
+    }
+}

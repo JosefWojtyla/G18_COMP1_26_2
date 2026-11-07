@@ -91,7 +91,6 @@ static AstNode *concatenar_blocos(AstNode *primeiro, AstNode *segundo) {
 
 %type <no>  programa declaracoes_globais lista_funcoes funcao_inicio
 %type <no>  declaracao_funcao bloco comando declaracao
-%type <no>  expressao se_comando enquanto_comando lista_parametros
 %type <no>  expressao se_comando senao_opcional enquanto_comando lista_parametros
 %type <no>  chamada_funcao lista_argumentos acesso_vetor
 %type <no>  inicializacao_para incremento_para para_comando

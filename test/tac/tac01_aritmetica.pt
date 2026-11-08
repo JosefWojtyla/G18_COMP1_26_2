@@ -1,0 +1,6 @@
+programa {
+    funcao inicio() {
+        inteiro a = 2 + 3 * 4
+        escreva(a)
+    }
+}

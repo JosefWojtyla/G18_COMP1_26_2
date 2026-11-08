@@ -1,0 +1,8 @@
+programa {
+    funcao inicio() {
+        inteiro a = 1
+        se (a + 1) entao {
+            escreva(a)
+        }
+    }
+}

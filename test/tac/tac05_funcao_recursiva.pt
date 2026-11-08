@@ -1,0 +1,14 @@
+programa {
+    funcao inteiro fibonacci(inteiro n) {
+        se (n <= 1) entao {
+            retorne n
+        } senao {
+            retorne fibonacci(n - 1) + fibonacci(n - 2)
+        }
+    }
+
+    funcao inicio() {
+        inteiro f = fibonacci(5)
+        escreva(f)
+    }
+}

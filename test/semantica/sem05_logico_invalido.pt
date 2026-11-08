@@ -1,0 +1,5 @@
+programa {
+    funcao inicio() {
+        logico b = 1 e 2
+    }
+}

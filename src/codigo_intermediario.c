@@ -11,10 +11,15 @@ typedef enum {
     OP_MUL,
     OP_DIV,
     OP_MOD,
+    OP_EQ, OP_NE, OP_LT, OP_GT, OP_LE, OP_GE,
+    OP_AND, OP_OR, OP_NOT,
     OP_ASSIGN,
     OP_JUMP,
     OP_JUMP_IF_ZERO,
     OP_JUMP_IF_NOT_ZERO,
+    OP_LABEL,
+    OP_BEGIN, OP_END, OP_PARAM, OP_CALL, OP_RETURN,
+    OP_WRITE, OP_READ
 } OPCode;
 
 typedef enum {
@@ -60,5 +65,48 @@ static char *copia(const char *str) {
 static Operando opd_nenhum() {
     Operando opd;
     opd.tipo = OPD_NENHUM;
+    return opd;
+}
+
+static Operando opd_nome(TipoOPD tipo, const char *nome) {
+    Operando opd;
+    opd.tipo = tipo;
+    opd.valor.nome = copia(nome);
+    return opd;
+}
+
+static Operando opd_inteiro(long valor) {
+    Operando opd;
+    opd.tipo = OPD_CONST_INT;
+    opd.valor.inteiro = valor;
+    return opd;
+}
+
+static Operando opd_real(double valor) {
+    Operando opd;
+    opd.tipo = OPD_CONST_REAL;
+    opd.valor.real = valor;
+    return opd;
+}
+
+static Operando opd_novo_temp() {
+    Operando opd;
+    opd.tipo = OPD_TEMP;
+    opd.valor.nome = malloc(20);
+    if (!opd.valor.nome) {
+        perro("Erro ao alocar memória para nome de temporário"); exit(EXIT_FAILURE);
+    }
+    sprintf(opd.valor.nome, "t%d", contador_temp++);
+    return opd;
+}
+
+static Operando opd_novo_rotulo() {
+    Operando opd;
+    opd.tipo = OPD_ROTULO;
+    opd.valor.nome = malloc(20);
+    if (!opd.valor.nome) {
+        perro("Erro ao alocar memória para nome de rótulo"); exit(EXIT_FAILURE);
+    }
+    sprintf(opd.valor.nome, "L%d", contador_rotulo++);
     return opd;
 }

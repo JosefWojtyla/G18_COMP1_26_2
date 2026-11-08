@@ -56,6 +56,7 @@ int inserirSimbolo(TabelaSimbolos *tabela, char *nome, char *tipo, int linha, in
     novo->escopo = escopo;
     novo->inicializado = 0;
     novo->valor_padrao = NULL;
+    novo->parametros = NULL;
 
     tabela->simbolos[tabela->count] = novo;
     tabela->count++;

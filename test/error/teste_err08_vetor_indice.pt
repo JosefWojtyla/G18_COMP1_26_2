@@ -1,0 +1,8 @@
+// Erro semântico: índice de vetor não inteiro e vetor não declarado
+programa {
+    funcao inicio() {
+        inteiro v[5]
+        v[1.5] = 10
+    }
+}
+

@@ -11,6 +11,8 @@ AstNode *raiz_ast = NULL;
 
 TabelaSimbolos *tabela;
 
+char *tipo_retorno_atual = NULL;
+
 void yyerror(const char *s); /* função de erro */
 extern int yylex(void);        /* função do Flex */
 extern int yylineno;            /* linha atual (do Flex) */
@@ -197,7 +199,11 @@ comando
         { $$ = $1; }
     | RETORNE expressao
         { 
-            inferir_tipo($2, tabela);
+            if (tipo_retorno_atual != NULL) {
+                verificar_atribuicao(tipo_retorno_atual, $2, yylineno, tabela);
+            } else {
+                inferir_tipo($2, tabela);
+            }
             $$ = criar_no_retorne($2, yylineno); 
         }
     | chamada_funcao
@@ -245,21 +251,36 @@ declaracao
         }
     | tipo IDENTIFICADOR ABRE_COLCH INTEIRO FECHA_COLCH
         {
+            if (!inserirSimbolo(tabela, $2, $1, yylineno, tabela->escopo_atual)) {
+                yyerror("Vetor já declarado neste escopo");
+            } else {
+                Simbolo *s = buscarSimbolo(tabela, $2);
+                if (s) {
+                    s->eh_array = 1;
+                    s->tamanho_array = $4;
+                    s->inicializado = 1;
+                }
+            }
             free($1);
             free($2);
-            $$ = NULL; /* Não há nó de declaração de vetor no design atual. */
+            $$ = NULL;
         }
     ;
 
 declaracao_funcao
     : FUNCAO tipo IDENTIFICADOR
       ABRE_PAR FECHA_PAR
-      ABRE_CHAVE{
-        inserirSimbolo(tabela, $3, $2, yylineno, 0);
-        abrirEscopo(tabela);
+      ABRE_CHAVE {
+          inserirSimbolo(tabela, $3, $2, yylineno, 0);
+          tipo_retorno_atual = $2;
+          abrirEscopo(tabela);
       } bloco FECHA_CHAVE
         {
             fecharEscopo(tabela);
+            tipo_retorno_atual = NULL;
+            if (!verificar_retorno_garantido($8)) {
+                yyerror("Funcao nao possui retorno garantido em todos os caminhos");
+            }
             $$ = criar_no_funcao($3, $2, NULL, $8, yylineno);
             free($2);
             free($3);
@@ -268,11 +289,18 @@ declaracao_funcao
       ABRE_PAR lista_parametros FECHA_PAR
       ABRE_CHAVE {
           inserirSimbolo(tabela, $3, $2, yylineno, 0);
+          Simbolo *f = buscarSimbolo(tabela, $3);
+          if (f) f->parametros = $5;
+          tipo_retorno_atual = $2;
           abrirEscopo(tabela);
       } bloco FECHA_CHAVE
         {
             fecharEscopo(tabela);
-            $$ = criar_no_funcao($3, $2, $5, $9, yylineno); // bloco virou $9!
+            tipo_retorno_atual = NULL;
+            if (!verificar_retorno_garantido($9)) {
+                yyerror("Funcao nao possui retorno garantido em todos os caminhos");
+            }
+            $$ = criar_no_funcao($3, $2, $5, $9, yylineno);
             free($2);
             free($3);
         }
@@ -430,9 +458,17 @@ lista_argumentos
 acesso_vetor
     : IDENTIFICADOR ABRE_COLCH expressao FECHA_COLCH
         {
+            Simbolo *s = buscarSimbolo(tabela, $1);
+            if (s == NULL || !s->eh_array) {
+                yyerror("Vetor nao declarado");
+            }
+            const char *t_idx = inferir_tipo($3, tabela);
+            if (t_idx != NULL && strcmp(t_idx, "inteiro") != 0) {
+                yyerror("Indice de vetor deve ser do tipo inteiro");
+            }
             free($1);
             liberar_ast($3);
-            $$ = NULL; /* A AST ainda não possui nó de acesso a vetor. */
+            $$ = NULL;
         }
     ;
 

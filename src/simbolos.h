@@ -1,5 +1,6 @@
 #ifndef SIMBOLO_H
 #define SIMBOLO_H
+struct AstNode;
 
 typedef struct{
     char *nome; // nome do identificador (ID)
@@ -11,6 +12,7 @@ typedef struct{
     int inicializado; // 1 se foi inicializado, 0 c.c.
     int ativo; // 1 se escopo da variavel ainda está aberto, 0 se já tá fechado
     char *valor_padrao; // valor padrão se não inicializado 
+    struct AstNode *parametros; // lista de parametros da função
 } Simbolo;
 
 typedef struct{

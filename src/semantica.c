@@ -31,12 +31,30 @@ const char *inferir_tipo(AstNode *no, TabelaSimbolos *tabela){
             case NO_CHAMADA: {
                 Simbolo *s = buscarSimbolo(tabela, no->dados.chamada.nome);
                 if(s == NULL){
-                    fprintf(stderr, "Erro semântico: função não declarada.\n");
+                    fprintf(stderr, "Erro semantico na linha %d: Funcao '%s' nao declarada.\n", no->linha, no->dados.chamada.nome);
                     qtd_erros++;
                     return NULL;
-                } else {
-                    return s->tipo;
+                } 
+
+                AstNode *param_atual = s->parametros;
+                AstNode *arg_atual = no->dados.chamada.argumentos;
+
+                while(param_atual != NULL && arg_atual != NULL){
+                    AstNode *p = param_atual->dados.bloco.comando;
+                    AstNode *arg = arg_atual->dados.bloco.comando;
+
+                    verificar_atribuicao(p->dados.parametro.tipo_dado, arg, no->linha, tabela);
+                    param_atual = param_atual->dados.bloco.proximo;
+                    arg_atual = arg_atual->dados.bloco.proximo;
                 }
+
+                if (param_atual != NULL || arg_atual != NULL) {
+                    fprintf(stderr, "Erro semantico na linha %d: Numero incorreto de argumentos na chamada da funcao '%s'.\n",
+                     no->linha, no->dados.chamada.nome);
+                    qtd_erros++;
+                }
+
+                return s->tipo;
             }
 
             case NO_OP_BINARIA: {
@@ -111,4 +129,22 @@ void verificar_condicao(AstNode *condicao, int linha, TabelaSimbolos *tabela){
         linha, tipo_cond);
         qtd_erros++;
     }
+}
+
+int verificar_retorno_garantido(AstNode *no) {
+    if (no == NULL) return 0;
+
+    if (no->tipo == NO_RETORNE) return 1;
+
+    if (no->tipo == NO_BLOCO) {
+        return verificar_retorno_garantido(no->dados.bloco.comando) ||
+               verificar_retorno_garantido(no->dados.bloco.proximo);
+    }
+
+    if (no->tipo == NO_SE && no->dados.se.senao != NULL) {
+        return verificar_retorno_garantido(no->dados.se.entao) &&
+               verificar_retorno_garantido(no->dados.se.senao);
+    }
+
+    return 0;
 }

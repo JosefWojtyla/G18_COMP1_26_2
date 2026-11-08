@@ -16,7 +16,7 @@ TARGET = $(BUILD_DIR)/portugol
 
 # -------------------------------------------------------
 # Alvo padrão
-.PHONY: all clean test help
+.PHONY: all clean test test-tac test-sem test-all help
 
 all: $(TARGET)
 
@@ -71,6 +71,30 @@ test: $(TARGET)
 	echo ""; echo "========================================"; \
 	echo "  Resultado: $$pass PASS  |  $$fail FAIL"; \
 	echo "========================================"
+
+# -------------------------------------------------------
+# Testes do codigo intermediario: compara a saida TAC com o arquivo .tac esperado
+test-tac: $(TARGET)
+	@pass=0; fail=0; echo ""; echo "-- Testes de codigo intermediario (TAC) --"; \
+	for f in $(TEST_DIR)/tac/*.pt; do \
+		printf "  %-40s " "$$f"; \
+		if ./$(TARGET) $$f 2>/dev/null | sed -n '/Código de três/,/^$$/p' | sed '1d;$$d' | diff -q - $${f%.pt}.tac > /dev/null; then \
+			echo "[PASS]"; pass=$$((pass+1)); \
+		else echo "[FAIL] <- TAC diferente do esperado"; fail=$$((fail+1)); fi; \
+	done; echo "  Resultado TAC: $$pass PASS | $$fail FAIL"; [ $$fail -eq 0 ]
+
+# Testes semanticos: deve falhar (exit != 0) e emitir a mensagem do arquivo .msg
+test-sem: $(TARGET)
+	@pass=0; fail=0; echo ""; echo "-- Testes semanticos (erro + mensagem) --"; \
+	for f in $(TEST_DIR)/semantica/*.pt; do \
+		printf "  %-40s " "$$f"; \
+		out=$$(./$(TARGET) $$f 2>&1 >/dev/null); rc=$$?; \
+		if [ $$rc -ne 0 ] && echo "$$out" | grep -qF "$$(cat $${f%.pt}.msg)"; then \
+			echo "[PASS]"; pass=$$((pass+1)); \
+		else echo "[FAIL] <- mensagem esperada nao encontrada"; fail=$$((fail+1)); fi; \
+	done; echo "  Resultado SEM: $$pass PASS | $$fail FAIL"; [ $$fail -eq 0 ]
+
+test-all: test test-sem test-tac
 
 # -------------------------------------------------------
 # 5) Rodar um arquivo especifico com saida visivel

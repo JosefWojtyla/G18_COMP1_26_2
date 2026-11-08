@@ -1,6 +1,6 @@
 # Código intermediário (código de três endereços)
 
-**Status:** design inicial (Sprint 5). Itens marcados como **[pendente]** dependem de decisões da análise semântica.
+**Status:** implementado na Sprint 5 (`src/codigo_intermediario.c`) e validado por `make test-tac` (`test/tac/`). Itens marcados como **[pendente]** não foram implementados (ex.: acesso a vetor, conversão de tipos).
 
 ---
 

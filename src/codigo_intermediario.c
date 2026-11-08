@@ -355,3 +355,46 @@ void gera_codigo(AstNode *raiz) {
 
 // imprime cada quádrupla no formato (op, arg1, arg2, resultado)
 
+
+static const char *nome_opcode(OPCode op) {
+    switch (op) {
+    case OP_ADD: return "+";      case OP_SUB: return "-";
+    case OP_MUL: return "*";      case OP_DIV: return "/";
+    case OP_MOD: return "%";
+    case OP_EQ:  return "==";     case OP_NE:  return "!=";
+    case OP_LT:  return "<";      case OP_GT:  return ">";
+    case OP_LE:  return "<=";     case OP_GE:  return ">=";
+    case OP_AND: return "and";    case OP_OR:  return "or";
+    case OP_NOT: return "not";
+    case OP_ASSIGN:           return "=";
+    case OP_JUMP:             return "goto";
+    case OP_JUMP_IF_ZERO:     return "ifFalse";
+    case OP_JUMP_IF_NOT_ZERO: return "ifTrue";
+    case OP_LABEL:            return "label";
+    case OP_BEGIN:  return "begin";  case OP_END:    return "end";
+    case OP_PARAM:  return "param";  case OP_CALL:   return "call";
+    case OP_RETURN: return "return";
+    case OP_WRITE:  return "write";  case OP_READ:   return "read";
+    }
+    return "?";
+}
+ 
+static void imprime_opd(Operando o) {
+    switch (o.tipo) {
+    case OPD_NENHUM:        printf("-"); break;
+    case OPD_CONST_INT:     printf("%ld", o.valor.inteiro); break;
+    case OPD_CONST_REAL:    printf("%g", o.valor.real); break;
+    case OPD_CONST_STRING:  printf("%s", o.valor.nome); break;   /* o lexer já guarda as aspas */
+    default:                printf("%s", o.valor.nome); break;
+    }
+}
+ 
+void imprime_tac(void) {
+    printf("\n= = = Código de três endereços = = =\n");
+    for (Instrucao *i = primeira; i != NULL; i = i->proximo) {
+        printf("(%s, ", nome_opcode(i->op));
+        imprime_opd(i->arg1);     printf(", ");
+        imprime_opd(i->arg2);     printf(", ");
+        imprime_opd(i->resultado); printf(")\n");
+    }
+}

@@ -251,19 +251,9 @@ declaracao
         }
     | tipo IDENTIFICADOR ABRE_COLCH INTEIRO FECHA_COLCH
         {
-            if (!inserirSimbolo(tabela, $2, $1, yylineno, tabela->escopo_atual)) {
-                yyerror("Vetor já declarado neste escopo");
-            } else {
-                Simbolo *s = buscarSimbolo(tabela, $2);
-                if (s) {
-                    s->eh_array = 1;
-                    s->tamanho_array = $4;
-                    s->inicializado = 1;
-                }
-            }
             free($1);
             free($2);
-            $$ = NULL;
+            $$ = NULL; /* Não há nó de declaração de vetor no design atual. */
         }
     ;
 
@@ -458,17 +448,9 @@ lista_argumentos
 acesso_vetor
     : IDENTIFICADOR ABRE_COLCH expressao FECHA_COLCH
         {
-            Simbolo *s = buscarSimbolo(tabela, $1);
-            if (s == NULL || !s->eh_array) {
-                yyerror("Vetor nao declarado");
-            }
-            const char *t_idx = inferir_tipo($3, tabela);
-            if (t_idx != NULL && strcmp(t_idx, "inteiro") != 0) {
-                yyerror("Indice de vetor deve ser do tipo inteiro");
-            }
             free($1);
             liberar_ast($3);
-            $$ = NULL;
+            $$ = NULL; /* A AST ainda não possui nó de acesso a vetor. */
         }
     ;
 

@@ -1,8 +1,10 @@
-// Erro semântico: índice de vetor não inteiro e vetor não declarado
+// Erro semântico: chamada de função com quantidade incorreta de argumentos
 programa {
+    funcao inteiro somar(inteiro a, inteiro b) {
+        retorne a + b
+    }
+
     funcao inicio() {
-        inteiro v[5]
-        v[1.5] = 10
+        inteiro res = somar(5)
     }
 }
-

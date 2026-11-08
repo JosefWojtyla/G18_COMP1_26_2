@@ -170,19 +170,18 @@ static Operando gera_expr(AstNode *n);
 static Operando gera_chamada(AstNode *n) {
     int qtd = conta_lista(n->dados.chamada.argumentos);
 
-    /* 1) Avalia TODOS os argumentos antes de emitir os param. */
     Operando *vals = malloc((qtd ? qtd : 1) * sizeof *vals);
     if (!vals) { perror("malloc"); exit(EXIT_FAILURE); }
     int i = 0;
     for (AstNode *c = n->dados.chamada.argumentos; c != NULL; c = c->dados.bloco.proximo)
         vals[i++] = gera_expr(c->dados.bloco.comando);
 
-    /* 2) param na ordem dos argumentos. */
+
     for (i = 0; i < qtd; i++)
         emite(OP_PARAM, vals[i], opd_nenhum(), opd_nenhum());
     free(vals);
 
-    /* 3) call f, n, r */
+
     Operando r = opd_novo_temp();
     emite(OP_CALL, opd_nome(OPD_FUNC, n->dados.chamada.nome), opd_inteiro(qtd), r);
     return r;
@@ -190,9 +189,10 @@ static Operando gera_chamada(AstNode *n) {
 
 static Operando gera_expr(AstNode *n) {
     if (n == NULL) {
-        /* Vetores ainda não têm nó na AST: acesso_vetor devolve NULL. */
-        fprintf(stderr, "gera_expr: expressão ausente na AST\n");
-        exit(EXIT_FAILURE);
+        /* Vetores ainda não têm nó na AST (decisão: fora de escopo por ora).
+           Em vez de abortar o programa, avisa e segue com operando vazio. */
+        fprintf(stderr, "aviso: acesso a vetor ainda nao suportado no codigo intermediario (ignorado)\n");
+        return opd_nenhum();
     }
 
     switch (n->tipo) {
@@ -210,14 +210,14 @@ static Operando gera_expr(AstNode *n) {
     case NO_OP_BINARIA: {
         const char *op = n->dados.op_binaria.op;
 
-        if (strcmp(op, "nao") == 0) {                 /* unário: esq == NULL */
+        if (strcmp(op, "nao") == 0) {               
             Operando a = gera_expr(n->dados.op_binaria.dir);
             Operando t = opd_novo_temp();
             emite(OP_NOT, a, opd_nenhum(), t);
             return t;
         }
 
-        Operando a = gera_expr(n->dados.op_binaria.esq);  /* esquerda primeiro */
+        Operando a = gera_expr(n->dados.op_binaria.esq); 
         Operando b = gera_expr(n->dados.op_binaria.dir);
         Operando t = opd_novo_temp();
         emite(op_de_string(op), a, b, t);
@@ -238,7 +238,7 @@ static Operando gera_expr(AstNode *n) {
 
 static void gera_comando(AstNode *n);
 
-/* Percorre a lista (NO_BLOCO). Aceita NULL: bloco vazio. */
+
 static void gera_bloco(AstNode *lista) {
     for (AstNode *c = lista; c != NULL; c = c->dados.bloco.proximo)
         gera_comando(c->dados.bloco.comando);
@@ -272,7 +272,7 @@ static void gera_enquanto(AstNode *n) {
     Operando l_ini = opd_novo_rotulo();
     Operando l_fim = opd_novo_rotulo();
 
-    emite_rotulo(l_ini);                              /* teste dentro do laço */
+    emite_rotulo(l_ini);                             
     Operando c = gera_expr(n->dados.enquanto.condicao);
     emite(OP_JUMP_IF_ZERO, c, opd_nenhum(), l_fim);
 
@@ -282,7 +282,7 @@ static void gera_enquanto(AstNode *n) {
 }
 
 static void gera_para(AstNode *n) {
-    gera_comando(n->dados.para.inicializa);          /* i = i0 */
+    gera_comando(n->dados.para.inicializa);         
 
     Operando l_ini   = opd_novo_rotulo();
     Operando l_passo = opd_novo_rotulo();
@@ -295,7 +295,7 @@ static void gera_para(AstNode *n) {
     gera_bloco(n->dados.para.entao);
 
     emite_rotulo(l_passo);
-    gera_comando(n->dados.para.passo);               /* i = i + 1 (já reescrito pelo parser) */
+    gera_comando(n->dados.para.passo);         
     emite(OP_JUMP, opd_nenhum(), opd_nenhum(), l_ini);
     emite_rotulo(l_fim);
 }
@@ -308,10 +308,10 @@ static void gera_funcao(AstNode *n) {
 }
 
 static void gera_comando(AstNode *n) {
-    if (n == NULL) return;   /* declaração sem inicialização: não gera código */
+    if (n == NULL) return;  
 
     switch (n->tipo) {
-    case NO_BLOCO:           /* bloco aninhado, p. ex. o corpo de INICIO */
+    case NO_BLOCO:       
         gera_bloco(n);
         break;
 
@@ -335,7 +335,7 @@ static void gera_comando(AstNode *n) {
         break;
     }
 
-    case NO_CHAMADA:         /* chamada usada como comando: valor descartado */
+    case NO_CHAMADA:        
         gera_chamada(n);
         break;
 
@@ -350,7 +350,53 @@ static void gera_comando(AstNode *n) {
     }
 }
 
-/* Ponto de entrada: a raiz é um NO_BLOCO com globais, funções e o corpo de INICIO. */
+// Ponto de entrada
 void gera_codigo(AstNode *raiz) {
     gera_bloco(raiz);
+}
+
+// imprime cada quádrupla no formato (op, arg1, arg2, resultado)
+
+
+static const char *nome_opcode(OPCode op) {
+    switch (op) {
+    case OP_ADD: return "+";      case OP_SUB: return "-";
+    case OP_MUL: return "*";      case OP_DIV: return "/";
+    case OP_MOD: return "%";
+    case OP_EQ:  return "==";     case OP_NE:  return "!=";
+    case OP_LT:  return "<";      case OP_GT:  return ">";
+    case OP_LE:  return "<=";     case OP_GE:  return ">=";
+    case OP_AND: return "and";    case OP_OR:  return "or";
+    case OP_NOT: return "not";
+    case OP_ASSIGN:           return "=";
+    case OP_JUMP:             return "goto";
+    case OP_JUMP_IF_ZERO:     return "ifFalse";
+    case OP_JUMP_IF_NOT_ZERO: return "ifTrue";
+    case OP_LABEL:            return "label";
+    case OP_BEGIN:  return "begin";  case OP_END:    return "end";
+    case OP_PARAM:  return "param";  case OP_CALL:   return "call";
+    case OP_RETURN: return "return";
+    case OP_WRITE:  return "write";  case OP_READ:   return "read";
+    }
+    return "?";
+}
+ 
+static void imprime_opd(Operando o) {
+    switch (o.tipo) {
+    case OPD_NENHUM:        printf("-"); break;
+    case OPD_CONST_INT:     printf("%ld", o.valor.inteiro); break;
+    case OPD_CONST_REAL:    printf("%g", o.valor.real); break;
+    case OPD_CONST_STRING:  printf("%s", o.valor.nome); break;   /* o lexer já guarda as aspas */
+    default:                printf("%s", o.valor.nome); break;
+    }
+}
+ 
+void imprime_tac(void) {
+    printf("\n= = = Código de três endereços = = =\n");
+    for (Instrucao *i = primeira; i != NULL; i = i->proximo) {
+        printf("(%s, ", nome_opcode(i->op));
+        imprime_opd(i->arg1);     printf(", ");
+        imprime_opd(i->arg2);     printf(", ");
+        imprime_opd(i->resultado); printf(")\n");
+    }
 }

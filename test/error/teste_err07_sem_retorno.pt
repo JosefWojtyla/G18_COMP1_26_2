@@ -1,0 +1,13 @@
+// Erro semântico: função sem retorno garantido em todos os caminhos
+programa {
+    funcao inteiro calcular(inteiro x) {
+        se (x > 0) entao {
+            retorne x
+        }
+    }
+
+    funcao inicio() {
+        inteiro r = calcular(10)
+    }
+}
+

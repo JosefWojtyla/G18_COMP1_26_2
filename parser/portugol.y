@@ -11,6 +11,8 @@ AstNode *raiz_ast = NULL;
 
 TabelaSimbolos *tabela;
 
+char *tipo_retorno_atual = NULL;
+
 void yyerror(const char *s); /* função de erro */
 extern int yylex(void);        /* função do Flex */
 extern int yylineno;            /* linha atual (do Flex) */
@@ -197,7 +199,11 @@ comando
         { $$ = $1; }
     | RETORNE expressao
         { 
-            inferir_tipo($2, tabela);
+            if (tipo_retorno_atual != NULL) {
+                verificar_atribuicao(tipo_retorno_atual, $2, yylineno, tabela);
+            } else {
+                inferir_tipo($2, tabela);
+            }
             $$ = criar_no_retorne($2, yylineno); 
         }
     | chamada_funcao
@@ -254,12 +260,17 @@ declaracao
 declaracao_funcao
     : FUNCAO tipo IDENTIFICADOR
       ABRE_PAR FECHA_PAR
-      ABRE_CHAVE{
-        inserirSimbolo(tabela, $3, $2, yylineno, 0);
-        abrirEscopo(tabela);
+      ABRE_CHAVE {
+          inserirSimbolo(tabela, $3, $2, yylineno, 0);
+          tipo_retorno_atual = $2;
+          abrirEscopo(tabela);
       } bloco FECHA_CHAVE
         {
             fecharEscopo(tabela);
+            tipo_retorno_atual = NULL;
+            if (!verificar_retorno_garantido($8)) {
+                yyerror("Funcao nao possui retorno garantido em todos os caminhos");
+            }
             $$ = criar_no_funcao($3, $2, NULL, $8, yylineno);
             free($2);
             free($3);
@@ -268,11 +279,18 @@ declaracao_funcao
       ABRE_PAR lista_parametros FECHA_PAR
       ABRE_CHAVE {
           inserirSimbolo(tabela, $3, $2, yylineno, 0);
+          Simbolo *f = buscarSimbolo(tabela, $3);
+          if (f) f->parametros = $5;
+          tipo_retorno_atual = $2;
           abrirEscopo(tabela);
       } bloco FECHA_CHAVE
         {
             fecharEscopo(tabela);
-            $$ = criar_no_funcao($3, $2, $5, $9, yylineno); // bloco virou $9!
+            tipo_retorno_atual = NULL;
+            if (!verificar_retorno_garantido($9)) {
+                yyerror("Funcao nao possui retorno garantido em todos os caminhos");
+            }
+            $$ = criar_no_funcao($3, $2, $5, $9, yylineno);
             free($2);
             free($3);
         }

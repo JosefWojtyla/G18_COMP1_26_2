@@ -151,6 +151,7 @@ AstNode *criar_no_parametro(char *nome, char *tipo_dado, int linha);
 const char *inferir_tipo(AstNode *no, TabelaSimbolos *tabela);
 void verificar_atribuicao(const char *tipo_var, AstNode *expressao, int linha, TabelaSimbolos *tabela);
 void verificar_condicao(AstNode *condicao, int linha, TabelaSimbolos *tabela);
+int verificar_retorno_garantido(AstNode *no);
 
 // free na memoria
 void liberar_ast(AstNode *no);

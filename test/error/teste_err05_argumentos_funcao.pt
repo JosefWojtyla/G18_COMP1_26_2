@@ -1,0 +1,11 @@
+// Erro semântico: chamada de função com número/tipo incorreto de argumentos
+programa {
+    funcao inteiro somar(inteiro a, inteiro b) {
+        retorne a + b
+    }
+
+    funcao inicio() {
+        inteiro res = somar(5, "texto")
+    }
+}
+

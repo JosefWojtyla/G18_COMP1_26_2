@@ -1,0 +1,11 @@
+// Erro semântico: tipo do retorne incompatível com o tipo declarado da função
+programa {
+    funcao inteiro obter_numero() {
+        retorne "nao sou inteiro"
+    }
+
+    funcao inicio() {
+        inteiro x = obter_numero()
+    }
+}
+

@@ -16,7 +16,7 @@ TARGET = $(BUILD_DIR)/portugol
 
 # -------------------------------------------------------
 # Alvo padrão
-.PHONY: all clean test test-tac test-sem test-all help
+.PHONY: all clean test test-base test-tac test-sem help
 
 all: $(TARGET)
 
@@ -45,7 +45,7 @@ $(TARGET): $(FLEX_SRC) $(BISON_SRC) src/ast.c src/simbolos.c src/semantica.c src
 #    tests normais (sem "err" no nome): devem ser ACEITOS
 #    testes de erro (com "err" no nome): devem ser REJEITADOS
 # -------------------------------------------------------
-test: $(TARGET)
+test-base: $(TARGET)
 	@echo ""; echo "========================================"
 	@echo " RODANDO TESTES"
 	@echo "========================================"
@@ -94,7 +94,8 @@ test-sem: $(TARGET)
 		else echo "[FAIL] <- mensagem esperada nao encontrada"; fail=$$((fail+1)); fi; \
 	done; echo "  Resultado SEM: $$pass PASS | $$fail FAIL"; [ $$fail -eq 0 ]
 
-test-all: test test-sem test-tac
+# Roda todas as suites: valid/error, semantica e TAC
+test: test-base test-sem test-tac
 
 # -------------------------------------------------------
 # 5) Rodar um arquivo especifico com saida visivel
@@ -116,7 +117,8 @@ help:
 	@echo ""
 	@echo "Alvos disponiveis:"
 	@echo "  make          -> compila o compilador"
-	@echo "  make test     -> roda todos os testes em test/"
+	@echo "  make test     -> roda todas as suites (base, sem, tac)"
+	@echo "  make test-base/test-sem/test-tac -> roda uma suite"
 	@echo "  make run FILE=test/exemplo.pt  -> roda um arquivo"
 	@echo "  make clean    -> remove arquivos gerados"
 	@echo ""

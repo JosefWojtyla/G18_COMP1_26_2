@@ -100,7 +100,7 @@ Cada `.pt` possui um `.tac` com o código de três endereços esperado (golden f
 
 Limitação conhecida: acesso a vetor (`v[i]`) ainda não é gerado no TAC (emite aviso e ignora); por isso não há golden file para vetores.
 
-Para rodar tudo: `make test-all`.
+`make test` roda todas as suítes; `make test-base` roda só `valid/` e `error/`.
 
 ---
 

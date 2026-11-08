@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "simbolos.h"
+#include "../src/simbolos.h"
 #include "../src/ast.h"
 
 AstNode *raiz_ast = NULL; 
@@ -91,7 +91,7 @@ static AstNode *concatenar_blocos(AstNode *primeiro, AstNode *segundo) {
 
 %type <no>  programa declaracoes_globais lista_funcoes funcao_inicio
 %type <no>  declaracao_funcao bloco comando declaracao
-%type <no>  expressao se_comando enquanto_comando lista_parametros
+%type <no>  expressao se_comando senao_opcional enquanto_comando lista_parametros
 %type <no>  chamada_funcao lista_argumentos acesso_vetor
 %type <no>  inicializacao_para incremento_para para_comando
 %type <str> tipo
@@ -140,11 +140,11 @@ funcao_inicio
     : FUNCAO INICIO ABRE_PAR FECHA_PAR
       ABRE_CHAVE 
       {
-          tabela->escopo_atual++;
+          abrirEscopo(tabela);
       }
       bloco FECHA_CHAVE
       {
-          tabela->escopo_atual--;
+          fecharEscopo(tabela);
           $$ = $7;
       }
     ;
@@ -164,21 +164,47 @@ comando
     : declaracao { $$ = $1; }
     | IDENTIFICADOR ATRIBUICAO expressao 
         {
+            Simbolo *s = buscarSimbolo(tabela, $1);
+            if (s == NULL) {
+                yyerror("Variável usada sem declaração");
+            } else {
+                verificar_atribuicao(s->tipo, $3, yylineno, tabela);
+                s->inicializado = 1;
+            }
+
             $$ = criar_no_atribuicao($1, $3, yylineno);
             free($1);
         }
     | ESCREVA ABRE_PAR expressao FECHA_PAR 
-        { $$ = criar_no_escreva($3, yylineno); }
+        { 
+            inferir_tipo($3, tabela);
+            $$ = criar_no_escreva($3, yylineno); 
+        }
     | LEIA ABRE_PAR IDENTIFICADOR FECHA_PAR 
-        { $$ = criar_no_leia($3, yylineno); free($3); }
+        { 
+            Simbolo *s = buscarSimbolo(tabela, $3);
+            if(s == NULL){
+                yyerror("Variavel usasda sem declaracao.");
+            } else {
+                s->inicializado = 1;
+            }
+            $$ = criar_no_leia($3, yylineno); 
+            free($3);
+        }
     | se_comando
         { $$ = $1; }
     | enquanto_comando
         { $$ = $1; }
     | RETORNE expressao
-        { $$ = criar_no_retorne($2, yylineno); }
+        { 
+            inferir_tipo($2, tabela);
+            $$ = criar_no_retorne($2, yylineno); 
+        }
     | chamada_funcao
-        { $$ = $1; }
+        {
+            inferir_tipo($1, tabela); 
+            $$ = $1; 
+        }
     | acesso_vetor ATRIBUICAO expressao
     {
         liberar_ast($3);
@@ -212,6 +238,7 @@ declaracao
                     s->inicializado = 1;
                 }
             }
+            verificar_atribuicao($1, $4, yylineno, tabela);
             $$ = criar_no_atribuicao($2, $4, yylineno);
             free($1);
             free($2);
@@ -227,17 +254,25 @@ declaracao
 declaracao_funcao
     : FUNCAO tipo IDENTIFICADOR
       ABRE_PAR FECHA_PAR
-      ABRE_CHAVE bloco FECHA_CHAVE
+      ABRE_CHAVE{
+        inserirSimbolo(tabela, $3, $2, yylineno, 0);
+        abrirEscopo(tabela);
+      } bloco FECHA_CHAVE
         {
-            $$ = criar_no_funcao($3, $2, NULL, $7, yylineno);
+            fecharEscopo(tabela);
+            $$ = criar_no_funcao($3, $2, NULL, $8, yylineno);
             free($2);
             free($3);
         }
     | FUNCAO tipo IDENTIFICADOR
       ABRE_PAR lista_parametros FECHA_PAR
-      ABRE_CHAVE bloco FECHA_CHAVE
+      ABRE_CHAVE {
+          inserirSimbolo(tabela, $3, $2, yylineno, 0);
+          abrirEscopo(tabela);
+      } bloco FECHA_CHAVE
         {
-            $$ = criar_no_funcao($3, $2, $5, $8, yylineno);
+            fecharEscopo(tabela);
+            $$ = criar_no_funcao($3, $2, $5, $9, yylineno); // bloco virou $9!
             free($2);
             free($3);
         }
@@ -251,20 +286,45 @@ tipo
     ;
 
 enquanto_comando
-    : ENQUANTO ABRE_PAR expressao FECHA_PAR FACA ABRE_CHAVE bloco FECHA_CHAVE
+    : ENQUANTO ABRE_PAR expressao FECHA_PAR FACA ABRE_CHAVE
         {
-            $$ = criar_no_enquanto($3, $7, yylineno);
+            verificar_condicao($3, yylineno, tabela);
+            abrirEscopo(tabela);
+        } 
+        bloco FECHA_CHAVE
+        {
+            fecharEscopo(tabela);
+            $$ = criar_no_enquanto($3, $8, yylineno);
         }
     ;
 
 se_comando
-    : SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE bloco FECHA_CHAVE
+    : SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE
         {
-            $$ = criar_no_se($3, $7, NULL, yylineno);
+            verificar_condicao($3, yylineno, tabela);
+            abrirEscopo(tabela);
         }
-    | SE ABRE_PAR expressao FECHA_PAR ENTAO ABRE_CHAVE bloco FECHA_CHAVE SENAO ABRE_CHAVE bloco FECHA_CHAVE
+      bloco FECHA_CHAVE
         {
-            $$ = criar_no_se($3, $7, $11, yylineno);
+            fecharEscopo(tabela);
+        }
+      senao_opcional
+        {
+            $$ = criar_no_se($3, $8, $11, yylineno);
+        }
+    ;
+
+senao_opcional
+    : %empty
+        { $$ = NULL; }
+    | SENAO ABRE_CHAVE
+        {
+            abrirEscopo(tabela);
+        }
+      bloco FECHA_CHAVE
+        {
+            fecharEscopo(tabela);
+            $$ = $4;
         }
     ;
 
@@ -272,6 +332,12 @@ lista_parametros
     : tipo IDENTIFICADOR
         {
             AstNode *parame = criar_no_parametro($2, $1, yylineno);
+            if(!inserirSimbolo(tabela, $2, $1, yylineno, tabela->escopo_atual + 1)){
+                yyerror("Parametro ja declarado neste escopo");
+            } else {
+                Simbolo *s = buscarSimbolo(tabela, $2);
+                if(s) s->inicializado = 1;
+            }
             $$ = adicionar_ao_bloco(NULL, parame, yylineno);
             free($1);
             free($2);
@@ -279,6 +345,12 @@ lista_parametros
     | lista_parametros VIRGULA tipo IDENTIFICADOR
         {
             AstNode *parame = criar_no_parametro($4, $3, yylineno);
+            if(!inserirSimbolo(tabela, $4, $3, yylineno, tabela->escopo_atual + 1)){
+                yyerror("Parametro ja declarado neste escopo");
+            } else {
+                Simbolo *s = buscarSimbolo(tabela, $4);
+                if(s) s->inicializado = 1;
+            }
             $$ = adicionar_ao_bloco($1, parame, yylineno);
             free($3);
             free($4);
@@ -367,12 +439,26 @@ acesso_vetor
 inicializacao_para
     : tipo IDENTIFICADOR ATRIBUICAO expressao
         {
+            if(!inserirSimbolo(tabela, $2, $1, yylineno, tabela->escopo_atual)){
+                yyerror("Variável já declarada neste escopo");
+            } else {
+                Simbolo *s = buscarSimbolo(tabela, $2);
+                if(s) s->inicializado = 1;
+            }
+            verificar_atribuicao($1, $4, yylineno, tabela);
             $$ = criar_no_atribuicao($2, $4, yylineno);
             free($1);
             free($2);
         }
     | IDENTIFICADOR ATRIBUICAO expressao
         {
+            Simbolo *s = buscarSimbolo(tabela, $1);
+            if(s == NULL){
+                yyerror("Variável usada sem declaração");
+            } else {
+                verificar_atribuicao(s->tipo, $3, yylineno, tabela);
+                s->inicializado = 1;
+            }
             $$ = criar_no_atribuicao($1, $3, yylineno);
             free($1);
         }
@@ -413,13 +499,18 @@ incremento_para
 
 para_comando
     : PARA ABRE_PAR
+      {
+          abrirEscopo(tabela);
+      }
       inicializacao_para PONTO_VIRGULA
       expressao PONTO_VIRGULA
       incremento_para
       FECHA_PAR
       ABRE_CHAVE bloco FECHA_CHAVE
         {
-            $$ = criar_no_para($3, $5, $10, $7, yylineno);
+            verificar_condicao($6, yylineno, tabela);
+            fecharEscopo(tabela);
+            $$ = criar_no_para($4, $6, $11, $8, yylineno);
         }
     ;
 

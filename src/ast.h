@@ -1,5 +1,6 @@
 #ifndef AST_H
 #define AST_H
+#include "simbolos.h"
 
 typedef enum{
     NO_INTEIRO,
@@ -147,6 +148,9 @@ AstNode *criar_no_escreva(AstNode *expressao, int linha);
 AstNode *criar_no_leia(char *nome, int linha);
 AstNode *criar_no_chamada(char *nome, AstNode *argumentos, int linha);
 AstNode *criar_no_parametro(char *nome, char *tipo_dado, int linha);
+const char *inferir_tipo(AstNode *no, TabelaSimbolos *tabela);
+void verificar_atribuicao(const char *tipo_var, AstNode *expressao, int linha, TabelaSimbolos *tabela);
+void verificar_condicao(AstNode *condicao, int linha, TabelaSimbolos *tabela);
 
 // free na memoria
 void liberar_ast(AstNode *no);

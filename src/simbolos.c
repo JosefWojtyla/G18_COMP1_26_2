@@ -22,7 +22,7 @@ int verificarDuplicata(TabelaSimbolos *tabela, char *nome, int escopo){
     }
     // um simbolo só é duplicado se ele tiver o mesmo nome e tiver no mesmo escopo do que está na tabela
     for(int i = 0; i < tabela->count; i++){
-        if(strcmp(tabela->simbolos[i]->nome, nome) == 0 && tabela->simbolos[i]->escopo == escopo){
+        if(tabela->simbolos[i]->ativo && strcmp(tabela->simbolos[i]->nome, nome) == 0 && tabela->simbolos[i]->escopo == escopo){
             return 1;
         }
     }
@@ -43,6 +43,8 @@ int inserirSimbolo(TabelaSimbolos *tabela, char *nome, char *tipo, int linha, in
 
     Simbolo *novo = (Simbolo *) malloc(sizeof(Simbolo));
     
+    novo->ativo = 1;
+
     if(novo == NULL)
         return 0;
 
@@ -69,9 +71,9 @@ Simbolo *buscarSimbolo(TabelaSimbolos *tabela, char *nome){
     // na tabela de simbolos, variaveis com o mesmo nome e com escopo diferentes, são guardadas numa ordem:
     // primeiro vem a global e depois vem as locais.
     // primeiro devemos buscar a de escopo mais atual
-    // somente rodar um for de trás pra frente
+    // somente rodar um for de trás pra frente (pilha)
     for(int i = tabela->count - 1; i >= 0; i--){
-        if(strcmp(tabela->simbolos[i]->nome, nome) == 0){
+        if(tabela->simbolos[i]->ativo && strcmp(tabela->simbolos[i]->nome, nome) == 0){
             // retornar o simbolo encontrado
             return tabela->simbolos[i];
         }
@@ -99,4 +101,19 @@ void limparTabelaSimbolos(TabelaSimbolos *tabela){
     tabela->escopo_atual = 0;
 }
 
+void abrirEscopo(TabelaSimbolos *tabela){
+    if(tabela == NULL) return;
+    tabela->escopo_atual++;
+}
 
+void fecharEscopo(TabelaSimbolos *tabela){
+    
+    if(tabela == NULL) return;
+
+    for(int i = 0; i < tabela->count; i++){
+        if(tabela->simbolos[i]->ativo && (tabela->simbolos[i]->escopo == tabela->escopo_atual)){
+            tabela->simbolos[i]->ativo = 0;
+        }
+    }
+    tabela->escopo_atual--;
+}

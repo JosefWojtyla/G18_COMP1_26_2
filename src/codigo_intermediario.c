@@ -110,3 +110,58 @@ static Operando opd_novo_rotulo() {
     sprintf(opd.valor.nome, "L%d", contador_rotulo++);
     return opd;
 }
+
+
+// Lista de instruções
+
+static void emite(OPCode op, Operando a1, Operando a2, Operando r) {
+    Instrucao *i = calloc(1, sizeof *i);
+    if (!i) { perror("calloc"); exit(EXIT_FAILURE); }
+    i->op = op;
+    i->arg1 = a1;
+    i->arg2 = a2;
+    i->resultado = r;
+    if (ultima) ultima->proximo = i;
+    else        primeira = i;
+    ultima = i;
+}
+ 
+static void emite_rotulo(Operando l) {
+    emite(OP_LABEL, opd_nenhum(), opd_nenhum(), l);
+}
+
+
+// Tradução da AST para código intermediário
+
+static OPCode op_de_string(const char *op) {
+    if (strcmp(op, "+") == 0) return OP_ADD;
+    if (strcmp(op, "-") == 0) return OP_SUB;
+    if (strcmp(op, "*") == 0) return OP_MUL;
+    if (strcmp(op, "/") == 0) return OP_DIV;
+    if (strcmp(op, "%") == 0) return OP_MOD;
+    if (strcmp(op, "==") == 0) return OP_EQ;
+    if (strcmp(op, "!=") == 0) return OP_NE;
+    if (strcmp(op, "<") == 0) return OP_LT;
+    if (strcmp(op, ">") == 0) return OP_GT;
+    if (strcmp(op, "<=") == 0) return OP_LE;
+    if (strcmp(op, ">=") == 0) return OP_GE;
+    if (strcmp(op, "&&") == 0) return OP_AND;
+    if (strcmp(op, "||") == 0) return OP_OR;
+    if (strcmp(op, "!") == 0) return OP_NOT;
+    fprintf(stderr, "Operador desconhecido: %s\n", op);
+    exit(EXIT_FAILURE);
+}
+
+// lista de AST
+
+static int conta_lista(AST *lista) {
+    int count = 0;
+    while (lista) {
+        count++;
+        lista = lista->irmao;
+    }
+    return count;
+}
+
+//expressões
+

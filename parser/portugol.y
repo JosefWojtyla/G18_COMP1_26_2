@@ -587,6 +587,11 @@ int main(int argc, char *argv[]) {
             printf("\n = = = AST = = =\n");
             ast_imprimir(raiz_ast, 0);
         }
+
+        if(qtd_erros == 0){
+            gera_codigo(raiz_ast);
+            imprime_tac();
+        }
     } else {
         printf("\n\n Erros encontrados durante o parse.\n");
     }

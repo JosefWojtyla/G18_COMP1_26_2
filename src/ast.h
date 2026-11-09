@@ -160,5 +160,8 @@ void ast_liberar(AstNode *raiz);
 // impressão da AST com indentação
 void ast_imprimir(AstNode *raiz, int nivel);
 
+// geração de código intermediário (três endereços)
+void gera_codigo(AstNode *raiz);
+void imprime_tac(void);
 
 #endif

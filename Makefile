@@ -16,7 +16,7 @@ TARGET = $(BUILD_DIR)/portugol
 
 # -------------------------------------------------------
 # Alvo padrão
-.PHONY: all clean test help
+.PHONY: all clean test test-base test-tac test-sem help
 
 all: $(TARGET)
 
@@ -45,7 +45,7 @@ $(TARGET): $(FLEX_SRC) $(BISON_SRC) src/ast.c src/simbolos.c src/semantica.c src
 #    tests normais (sem "err" no nome): devem ser ACEITOS
 #    testes de erro (com "err" no nome): devem ser REJEITADOS
 # -------------------------------------------------------
-test: $(TARGET)
+test-base: $(TARGET)
 	@echo ""; echo "========================================"
 	@echo " RODANDO TESTES"
 	@echo "========================================"
@@ -73,6 +73,31 @@ test: $(TARGET)
 	echo "========================================"
 
 # -------------------------------------------------------
+# Testes do codigo intermediario: compara a saida TAC com o arquivo .tac esperado
+test-tac: $(TARGET)
+	@pass=0; fail=0; echo ""; echo "-- Testes de codigo intermediario (TAC) --"; \
+	for f in $(TEST_DIR)/tac/*.pt; do \
+		printf "  %-40s " "$$f"; \
+		if ./$(TARGET) $$f 2>/dev/null | sed -n '/Código de três/,/^$$/p' | sed '1d;$$d' | diff -q - $${f%.pt}.tac > /dev/null; then \
+			echo "[PASS]"; pass=$$((pass+1)); \
+		else echo "[FAIL] <- TAC diferente do esperado"; fail=$$((fail+1)); fi; \
+	done; echo "  Resultado TAC: $$pass PASS | $$fail FAIL"; [ $$fail -eq 0 ]
+
+# Testes semanticos: deve falhar (exit != 0) e emitir a mensagem do arquivo .msg
+test-sem: $(TARGET)
+	@pass=0; fail=0; echo ""; echo "-- Testes semanticos (erro + mensagem) --"; \
+	for f in $(TEST_DIR)/semantica/*.pt; do \
+		printf "  %-40s " "$$f"; \
+		out=$$(./$(TARGET) $$f 2>&1 >/dev/null); rc=$$?; \
+		if [ $$rc -ne 0 ] && echo "$$out" | grep -qF "$$(cat $${f%.pt}.msg)"; then \
+			echo "[PASS]"; pass=$$((pass+1)); \
+		else echo "[FAIL] <- mensagem esperada nao encontrada"; fail=$$((fail+1)); fi; \
+	done; echo "  Resultado SEM: $$pass PASS | $$fail FAIL"; [ $$fail -eq 0 ]
+
+# Roda todas as suites: valid/error, semantica e TAC
+test: test-base test-sem test-tac
+
+# -------------------------------------------------------
 # 5) Rodar um arquivo especifico com saida visivel
 run: $(TARGET)
 	./$(TARGET) $(FILE)
@@ -92,7 +117,8 @@ help:
 	@echo ""
 	@echo "Alvos disponiveis:"
 	@echo "  make          -> compila o compilador"
-	@echo "  make test     -> roda todos os testes em test/"
+	@echo "  make test     -> roda todas as suites (base, sem, tac)"
+	@echo "  make test-base/test-sem/test-tac -> roda uma suite"
 	@echo "  make run FILE=test/exemplo.pt  -> roda um arquivo"
 	@echo "  make clean    -> remove arquivos gerados"
 	@echo ""

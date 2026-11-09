@@ -72,6 +72,38 @@ make run FILE=test/valid/funcao_simples.pt
 
 ---
 
+## 4.1 Testes Semânticos (`test/semantica/`)
+
+Cada `.pt` possui um `.msg` com o trecho da mensagem esperada em `stderr`. O teste passa se o compilador retornar código != 0 **e** emitir a mensagem. Execução: `make test-sem`.
+
+| ID | Arquivo | Erro semântico validado | Mensagem esperada |
+|:---|:---|:---|:---|
+| **TC-S01** | `sem01_var_nao_declarada.pt` | Uso de variável não declarada | `Variavel 'x' nao foi declarada` |
+| **TC-S02** | `sem02_atribuicao_tipo.pt` | `inteiro` recebendo `cadeia` | `Tipo incompativel na atribuicao` |
+| **TC-S03** | `sem03_condicao_nao_logica.pt` | Condição de `se` não lógica | `Condicao invalida` |
+| **TC-S04** | `sem04_operacao_nao_numerica.pt` | `1 + "x"` | `esperava tipos numericos` |
+| **TC-S05** | `sem05_logico_invalido.pt` | `1 e 2` | `espera tipo 'logico'` |
+| **TC-S06** | `sem06_funcao_nao_declarada.pt` | Chamada de função inexistente | `Funcao 'soma' nao declarada` |
+| **TC-S07** | `sem07_numero_argumentos.pt` | Número errado de argumentos | `Numero incorreto de argumentos` |
+
+## 4.2 Testes de Código Intermediário (`test/tac/`)
+
+Cada `.pt` possui um `.tac` com o código de três endereços esperado (golden file). O teste compara a saída exata do gerador. Execução: `make test-tac`.
+
+| ID | Arquivo | O que valida |
+|:---|:---|:---|
+| **TC-T01** | `tac01_aritmetica.pt` | Temporários e precedência (`2 + 3 * 4`) |
+| **TC-T02** | `tac02_se_senao.pt` | `ifFalse`, `goto` e rótulos de `se/senao` |
+| **TC-T03** | `tac03_enquanto.pt` | Laço `enquanto` (rótulo de início, saída e salto de volta) |
+| **TC-T04** | `tac04_para.pt` | Laço `para` (inicialização, condição, passo) |
+| **TC-T05** | `tac05_funcao_recursiva.pt` | `begin/end`, `param`, `call`, `return` |
+
+Limitação conhecida: acesso a vetor (`v[i]`) ainda não é gerado no TAC (emite aviso e ignora); por isso não há golden file para vetores.
+
+`make test` roda todas as suítes; `make test-base` roda só `valid/` e `error/`.
+
+---
+
 ## 5. Resumo da Execução dos Testes Automatizados
 
 Execução consolidada via `make test`:

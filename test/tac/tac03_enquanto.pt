@@ -1,0 +1,8 @@
+programa {
+    funcao inicio() {
+        inteiro x = 0
+        enquanto (x < 3) faca {
+            x = x + 1
+        }
+    }
+}

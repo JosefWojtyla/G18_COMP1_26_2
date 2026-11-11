@@ -114,6 +114,34 @@ A recusa de redeclaração no mesmo escopo é coberta pelos casos `test/error/va
 
 ---
 
+### Análise Semântica
+
+Implementada em `src/semantica.c` e  `src/simbolos.c`, chamada durante o parse (ações do Bison) com a tabela de símbolos e a AST. Cada erro incrementa `qtd_erros`: com erro semântico o compilador termina com código != 0 e **não gera TAC**. Detalhes em `docs/compilador/analise-semantica.md`.
+
+**Verificações:**
+
+| Verificação | Função | Mensagem |
+|---|---|---|
+| Variável não declarada | `inferir_tipo` | `Variavel 'x' nao foi declarada` |
+| Redeclaração no mesmo escopo | `simbolos.c` | `Variável já declarada neste escopo` |
+| Função não declarada | `inferir_tipo` | `Funcao 'f' nao declarada` |
+| Número/tipo de argumentos na chamada | `inferir_tipo` | `Numero incorreto de argumentos ...` |
+| Operandos aritméticos numéricos | `inferir_tipo` | `esperava tipos numericos` |
+| Operadores lógicos exigem `logico` | `inferir_tipo` | `espera tipo 'logico'` |
+| Atribuição compatível (`inteiro` → `real` permitido) | `verificar_atribuicao` | `Tipo incompativel na atribuicao` |
+| Condição de `se`/`enquanto`/`para` lógica | `verificar_condicao` | `Condicao invalida` |
+| Retorno garantido em todos os caminhos | `verificar_retorno_garantido` | `Funcao nao possui retorno garantido ...` |
+
+**Inferência de tipos:** `inferir_tipo(no, tabela)` percorre a AST e devolve `inteiro`, `real`, `cadeia` ou `logico`. Retorna `NULL` quando o tipo é indeterminado (por exemplo, após erro já reportado), evitando erros em cascata.
+
+**Saída real** para `inteiro a = "texto"` (`test/semantica/sem02_atribuicao_tipo.pt`):
+
+```
+Erro semantico na linha 4: Tipo incompativel na atribuicao. Esperado 'inteiro', mas encontrado 'cadeia'.
+```
+
+---
+
 ### Código Intermediário (Três Endereços)
 
 Formato: `(op, arg1, arg2, resultado)`. Saída real do gerador (`gera_codigo` + `imprime_tac`) para as árvores dos exemplos da seção 7 de `codigo-intermediario.md`.

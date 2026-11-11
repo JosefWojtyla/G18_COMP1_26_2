@@ -89,7 +89,7 @@ test-sem: $(TARGET)
 	for f in $(TEST_DIR)/semantica/*.pt; do \
 		printf "  %-40s " "$$f"; \
 		out=$$(./$(TARGET) $$f 2>&1 >/dev/null); rc=$$?; \
-		if [ $$rc -ne 0 ] && echo "$$out" | grep -qF "$$(cat $${f%.pt}.msg)"; then \
+		if [ $$rc -ne 0 ] && echo "$$out" | grep -qF "$$(tr -d '\r' < $${f%.pt}.msg)"; then \
 			echo "[PASS]"; pass=$$((pass+1)); \
 		else echo "[FAIL] <- mensagem esperada nao encontrada"; fail=$$((fail+1)); fi; \
 	done; echo "  Resultado SEM: $$pass PASS | $$fail FAIL"; [ $$fail -eq 0 ]

@@ -164,4 +164,7 @@ void ast_imprimir(AstNode *raiz, int nivel);
 void gera_codigo(AstNode *raiz);
 void imprime_tac(void);
 
+// otimização
+void otimiza_tac(void);
+
 #endif

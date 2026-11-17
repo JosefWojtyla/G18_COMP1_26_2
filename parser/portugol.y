@@ -590,6 +590,7 @@ int main(int argc, char *argv[]) {
 
         if(qtd_erros == 0){
             gera_codigo(raiz_ast);
+            otimiza_tac();
             imprime_tac();
         }
     } else {

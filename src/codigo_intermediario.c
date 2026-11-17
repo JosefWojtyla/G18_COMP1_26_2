@@ -390,7 +390,9 @@ static void imprime_opd(Operando o) {
     default:                printf("%s", o.valor.nome); break;
     }
 }
- 
+
+
+
 void imprime_tac(void) {
     printf("\n= = = Código de três endereços = = =\n");
     for (Instrucao *i = primeira; i != NULL; i = i->proximo) {
@@ -399,4 +401,74 @@ void imprime_tac(void) {
         imprime_opd(i->arg2);     printf(", ");
         imprime_opd(i->resultado); printf(")\n");
     }
+}
+
+static Instrucao *remove_instrucao(Instrucao *ant, Instrucao *atual) {
+    Instrucao *prox = atual->proximo;
+    if(ant) ant->proximo = prox;   
+    else primeira = prox;  
+
+    if (atual == ultima) ultima = ant;
+    free(atual);
+    return prox;
+}
+
+static int remove_inalcancavel(void) {
+    int removidas = 0, morto = 0;
+    Instrucao *ant = NULL, *atual = primeira;
+    while (atual) {
+        
+        if (atual->op == OP_LABEL || atual->op == OP_BEGIN || atual->op == OP_END)
+            morto = 0;
+        if (morto) {
+            atual = remove_instrucao(ant, atual);
+            removidas++;
+            continue;
+        }
+
+        if (atual->op == OP_RETURN || atual->op == OP_JUMP)
+            morto = 1;
+        ant = atual;
+        atual = atual->proximo;
+    }
+    return removidas;
+}
+
+static int usa_temp(Operando o, const char *nome) {
+    return o.tipo == OPD_TEMP && strcmp(o.valor.nome, nome) == 0;
+}
+
+static int temp_eh_usado(const char *nome) {
+    for (Instrucao *i = primeira; i; i = i->proximo)
+        if (usa_temp(i->arg1, nome) || usa_temp(i->arg2, nome))
+            return 1;
+    return 0;
+}
+
+// Só aritméticas/lógicas (OP_ADD..OP_NOT no enum) 
+static int eh_operacao_pura(OPCode op) {
+    return op >= OP_ADD && op <= OP_NOT;
+}
+static int remove_temps_mortos(void) {
+    int removidas = 0;
+    Instrucao *ant = NULL, *atual = primeira;
+    while (atual) {
+        if (atual->resultado.tipo == OPD_TEMP
+            && eh_operacao_pura(atual->op)
+            && !temp_eh_usado(atual->resultado.valor.nome)) {
+            atual = remove_instrucao(ant, atual);
+            removidas++;
+            continue;
+        }
+        ant = atual;
+        atual = atual->proximo;
+    }
+    return removidas;
+}
+
+void otimiza_tac(void) {
+    int mudou;
+    do {
+        mudou = remove_inalcancavel() + remove_temps_mortos();
+    } while (mudou);
 }

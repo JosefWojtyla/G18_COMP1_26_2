@@ -1,0 +1,12 @@
+programa {
+    funcao inteiro dobro(inteiro x) {
+        retorne x * 2
+        escreva("nunca")
+        x = x + 1
+    }
+
+    funcao inicio() {
+        inteiro r = dobro(4)
+        escreva(r)
+    }
+}

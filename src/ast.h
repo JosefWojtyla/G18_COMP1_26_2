@@ -165,6 +165,7 @@ void gera_codigo(AstNode *raiz);
 void imprime_tac(void);
 
 // otimização
+AstNode *otimizar_ast(AstNode *no);
 void otimiza_tac(void);
-
+AstNode *otimizar_ast(AstNode *no);
 #endif

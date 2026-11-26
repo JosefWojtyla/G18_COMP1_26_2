@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "ast.h"
 #include "simbolos.h"
 #include "codigo_intermediario.h"
 #include "codigo_final.h"
@@ -77,6 +78,46 @@ static void escreve_opd(FILE *out, Operando o) {
 static void indenta(FILE *out, int nivel) {
     for (int k = 0; k < nivel; k++) fputs("    ", out);
 }
+
+// ---------- tipos declarados ----------
+//
+// O TAC não guarda tipos, então consultamos a tabela de símbolos. Só nos importa
+// o 'real': no Python, "real r = 7" guardaria o inteiro 7 e "r / 2" daria 3 em vez
+// de 3.5. Por isso valores que vão para variável, parâmetro ou retorno 'real'
+// passam por float(...).
+
+// Tipo declarado de uma variável; NULL se não existe ou se o mesmo nome tem tipos
+// diferentes em escopos diferentes (ambíguo: não convertemos nada).
+static const char *tipo_variavel(const char *nome) {
+    if (tabela == NULL) return NULL;
+    const char *tipo = NULL;
+    for (int k = 0; k < tabela->count; k++) {
+        const Simbolo *s = tabela->simbolos[k];
+        if (strcmp(s->nome, nome) != 0) continue;
+        if (tipo == NULL) tipo = s->tipo;
+        else if (strcmp(tipo, s->tipo) != 0) return NULL;
+    }
+    return tipo;
+}
+
+static int eh_real(Operando o) {
+    if (o.tipo != OPD_VAR) return 0;
+    const char *t = tipo_variavel(o.valor.nome);
+    return t != NULL && strcmp(t, "real") == 0;
+}
+
+// Símbolo da função (escopo 0): guarda o tipo de retorno e a lista de parâmetros
+static const Simbolo *simbolo_funcao(const char *nome) {
+    if (tabela == NULL) return NULL;
+    for (int k = 0; k < tabela->count; k++) {
+        const Simbolo *s = tabela->simbolos[k];
+        if (s->escopo == 0 && strcmp(s->nome, nome) == 0) return s;
+    }
+    return NULL;
+}
+
+// Tipo de retorno da função que está sendo escrita (NULL para 'inicio')
+static const char *retorno_atual = NULL;
 
 // ---------- tradução de uma instrução ----------
 
@@ -139,18 +180,23 @@ static int emite_instrucao(FILE *out, const Instrucao *i, int nivel,
         escreve_opd(out, i->resultado); fputs(" = not ", out);
         escreve_opd(out, i->arg1); fputc('\n', out);
         return 1;
-    case OP_ASSIGN:                                     // x = a
+    case OP_ASSIGN:                                     // x = a   (x real: x = float(a))
         indenta(out, nivel);
         escreve_opd(out, i->resultado); fputs(" = ", out);
-        escreve_opd(out, i->arg1); fputc('\n', out);
+        if (eh_real(i->resultado)) {
+            fputs("float(", out); escreve_opd(out, i->arg1); fputs(")\n", out);
+        } else {
+            escreve_opd(out, i->arg1); fputc('\n', out);
+        }
         return 1;
     case OP_WRITE:                                      // print(a)
         indenta(out, nivel); fputs("print(", out);
         escreve_opd(out, i->arg1); fputs(")\n", out);
         return 1;
-    case OP_READ:                                       // x = _ler()
+    case OP_READ:                                       // x = _ler()  (x real: float(_ler()))
         indenta(out, nivel);
-        escreve_opd(out, i->resultado); fputs(" = _ler()\n", out);
+        escreve_opd(out, i->resultado); fputs(" = ", out);
+        fputs(eh_real(i->resultado) ? "float(_ler())\n" : "_ler()\n", out);
         return 1;
 
     case OP_PARAM:                                      // guarda o argumento até o call
@@ -172,7 +218,14 @@ static int emite_instrucao(FILE *out, const Instrucao *i, int nivel,
     }
     case OP_RETURN:                                     // return v
         indenta(out, nivel); fputs("return", out);
-        if (i->arg1.tipo != OPD_NENHUM) { fputc(' ', out); escreve_opd(out, i->arg1); }
+        if (i->arg1.tipo != OPD_NENHUM) {
+            fputc(' ', out);
+            if (retorno_atual != NULL && strcmp(retorno_atual, "real") == 0) {
+                fputs("float(", out); escreve_opd(out, i->arg1); fputc(')', out);
+            } else {
+                escreve_opd(out, i->arg1);
+            }
+        }
         fputc('\n', out);
         return 1;
 
@@ -313,9 +366,25 @@ static void emite_funcao(FILE *out, const Instrucao *lista,
         fputc('\n', out);
     }
 
+    // Parâmetros 'real' recebidos como inteiro (ex.: soma(1, 2)) viram float na entrada
+    const Simbolo *fn = simbolo_funcao(begin->arg1.valor.nome);
+    retorno_atual = (fn != NULL) ? fn->tipo : NULL;
+    if (fn != NULL) {
+        const AstNode *param = fn->parametros;
+        for (int k = 0; k < nformais && param != NULL; k++, param = param->dados.bloco.proximo) {
+            const char *tipo = param->dados.bloco.comando->dados.parametro.tipo_dado;
+            if (tipo != NULL && strcmp(tipo, "real") == 0) {
+                indenta(out, 1);
+                escreve_nome(out, formais[k]); fputs(" = float(", out);
+                escreve_nome(out, formais[k]); fputs(")\n", out);
+            }
+        }
+    }
+
     npendentes = 0;
     emite_corpo(out, corpo, fim, 1);
     fputc('\n', out);
+    retorno_atual = NULL;
 }
 
 static void escreve_auxiliares(FILE *out) {

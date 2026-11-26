@@ -1,21 +1,30 @@
 // Código final: traduz o código de três endereços (TAC) para Python.
 //
 // Cada quádrupla (op, arg1, arg2, resultado) vira uma linha de Python:
-//   (+, a, b, t0)   ->  t0 = a + b
-//   (=, t0, -, x)   ->  x = t0
-//   (write, x, -, -) -> print(x)
-//   (read, -, -, x)  -> x = _ler()
+//   (+, a, b, t0)    ->  t0 = a + b
+//   (=, t0, -, x)    ->  x = t0
+//   (write, x, -, -) ->  print(x)
+//   (read, -, -, x)  ->  x = _ler()
 //
 // Estrutura do arquivo gerado:
 //   1. funções auxiliares fixas (_ler e _div)
-//   2. funções do programa (begin ... end)          [instruções de função: parte 3]
-//   3. def inicio(): corpo solto do TAC (globais + inicio)
+//   2. uma 'def' para cada função do TAC (begin ... end), inclusive 'inicio'
+//   3. instruções soltas do TAC (fora de begin/end) = inicialização das globais
 //   4. chamada inicio()
+//
+// Python não tem 'goto'. Uma função cujo TAC tem rótulos e saltos é traduzida
+// como uma máquina de estados: o contador _pc diz qual bloco (trecho entre dois
+// rótulos) executa; pular para um rótulo é "_pc = k; continue".
 
 #include <stdio.h>
 #include <string.h>
+#include "simbolos.h"
 #include "codigo_intermediario.h"
 #include "codigo_final.h"
+
+extern TabelaSimbolos *tabela;      // tabela de símbolos (definida no parser)
+
+#define MAX_NOMES 64
 
 // ---------- nomes e operandos ----------
 
@@ -32,7 +41,7 @@ static int eh_palavra_python(const char *nome) {
     return 0;
 }
 
-// Variável com nome igual a palavra reservada do Python ganha um '_' no fim
+// Nome igual a palavra reservada do Python ganha um '_' no fim
 static void escreve_nome(FILE *out, const char *nome) {
     fputs(nome, out);
     if (eh_palavra_python(nome)) fputc('_', out);
@@ -56,12 +65,17 @@ static void escreve_opd(FILE *out, Operando o) {
         break;
     case OPD_VAR:
     case OPD_TEMP:
+    case OPD_FUNC:
         escreve_nome(out, o.valor.nome);
         break;
     default:
         fputs("None", out);
         break;
     }
+}
+
+static void indenta(FILE *out, int nivel) {
+    for (int k = 0; k < nivel; k++) fputs("    ", out);
 }
 
 // ---------- tradução de uma instrução ----------
@@ -79,13 +93,32 @@ static const char *op_python(OPCode op) {
     }
 }
 
-// Escreve a(s) linha(s) Python da instrução, com 4 espaços de indentação.
-// Devolve 1 se traduziu, 0 se a instrução ainda não é suportada (parte 3).
-static int emite_instrucao(FILE *out, const Instrucao *i) {
+// Argumentos já emitidos por 'param' e ainda não consumidos por um 'call'.
+// O gerador de TAC emite os 'param' de uma chamada logo antes do seu 'call'.
+static Operando pendentes[MAX_NOMES];
+static int npendentes = 0;
+
+// Número do bloco de um rótulo dentro da região [ini, fim): o 1º rótulo é o bloco 1,
+// o 2º é o bloco 2... (o bloco 0 é o trecho antes do primeiro rótulo).
+static int indice_rotulo(const Instrucao *ini, const Instrucao *fim, const char *nome) {
+    int k = 0;
+    for (const Instrucao *i = ini; i != fim; i = i->proximo) {
+        if (i->op != OP_LABEL) continue;
+        k++;
+        if (strcmp(i->resultado.valor.nome, nome) == 0) return k;
+    }
+    return k + 1;       // rótulo inexistente: nenhum bloco casa e a função termina
+}
+
+// Escreve a(s) linha(s) Python da instrução com o nível de indentação dado.
+// [ini, fim) é a região da função, usada para achar o destino dos saltos.
+// Devolve 1 se escreveu algum comando, 0 se não escreveu nada (ex.: param).
+static int emite_instrucao(FILE *out, const Instrucao *i, int nivel,
+                           const Instrucao *ini, const Instrucao *fim) {
     const char *op = op_python(i->op);
 
     if (op != NULL) {                                   // r = a op b
-        fputs("    ", out);
+        indenta(out, nivel);
         escreve_opd(out, i->resultado); fputs(" = ", out);
         escreve_opd(out, i->arg1);
         fprintf(out, " %s ", op);
@@ -96,37 +129,194 @@ static int emite_instrucao(FILE *out, const Instrucao *i) {
 
     switch (i->op) {
     case OP_DIV:                                        // r = _div(a, b)
-        fputs("    ", out);
+        indenta(out, nivel);
         escreve_opd(out, i->resultado); fputs(" = _div(", out);
         escreve_opd(out, i->arg1); fputs(", ", out);
         escreve_opd(out, i->arg2); fputs(")\n", out);
         return 1;
     case OP_NOT:                                        // r = not a
-        fputs("    ", out);
+        indenta(out, nivel);
         escreve_opd(out, i->resultado); fputs(" = not ", out);
         escreve_opd(out, i->arg1); fputc('\n', out);
         return 1;
     case OP_ASSIGN:                                     // x = a
-        fputs("    ", out);
+        indenta(out, nivel);
         escreve_opd(out, i->resultado); fputs(" = ", out);
         escreve_opd(out, i->arg1); fputc('\n', out);
         return 1;
     case OP_WRITE:                                      // print(a)
-        fputs("    print(", out);
+        indenta(out, nivel); fputs("print(", out);
         escreve_opd(out, i->arg1); fputs(")\n", out);
         return 1;
     case OP_READ:                                       // x = _ler()
-        fputs("    ", out);
+        indenta(out, nivel);
         escreve_opd(out, i->resultado); fputs(" = _ler()\n", out);
         return 1;
+
+    case OP_PARAM:                                      // guarda o argumento até o call
+        if (npendentes < MAX_NOMES) pendentes[npendentes++] = i->arg1;
+        return 0;
+    case OP_CALL: {                                     // r = f(a1, a2, ...)
+        int qtd = (int)i->arg2.valor.inteiro;
+        if (qtd > npendentes) qtd = npendentes;
+        indenta(out, nivel);
+        escreve_opd(out, i->resultado); fputs(" = ", out);
+        escreve_opd(out, i->arg1); fputc('(', out);
+        for (int k = 0; k < qtd; k++) {
+            if (k > 0) fputs(", ", out);
+            escreve_opd(out, pendentes[npendentes - qtd + k]);
+        }
+        fputs(")\n", out);
+        npendentes -= qtd;
+        return 1;
+    }
+    case OP_RETURN:                                     // return v
+        indenta(out, nivel); fputs("return", out);
+        if (i->arg1.tipo != OPD_NENHUM) { fputc(' ', out); escreve_opd(out, i->arg1); }
+        fputc('\n', out);
+        return 1;
+
+    case OP_JUMP:                                       // goto L
+        indenta(out, nivel);
+        fprintf(out, "_pc = %d\n", indice_rotulo(ini, fim, i->resultado.valor.nome));
+        indenta(out, nivel); fputs("continue\n", out);
+        return 1;
+    case OP_JUMP_IF_ZERO:                               // ifFalse c goto L
+    case OP_JUMP_IF_NOT_ZERO:                           // ifTrue  c goto L
+        indenta(out, nivel);
+        fputs(i->op == OP_JUMP_IF_ZERO ? "if not " : "if ", out);
+        escreve_opd(out, i->arg1); fputs(":\n", out);
+        indenta(out, nivel + 1);
+        fprintf(out, "_pc = %d\n", indice_rotulo(ini, fim, i->resultado.valor.nome));
+        indenta(out, nivel + 1); fputs("continue\n", out);
+        return 1;
+
     default:
-        // goto, ifFalse, label, param, call, return, formal...: parte 3
-        fputs("    # instrucao ainda nao traduzida (controle de fluxo / funcoes)\n", out);
+        // label, begin, end, formal: tratados por quem monta a função
         return 0;
     }
 }
 
-// ---------- arquivo completo ----------
+// Corpo de uma função (instruções de [ini, fim)) no nível de indentação dado.
+static void emite_corpo(FILE *out, const Instrucao *ini, const Instrucao *fim, int nivel) {
+    int tem_fluxo = 0;
+    for (const Instrucao *i = ini; i != fim; i = i->proximo)
+        if (i->op == OP_LABEL || i->op == OP_JUMP ||
+            i->op == OP_JUMP_IF_ZERO || i->op == OP_JUMP_IF_NOT_ZERO)
+            tem_fluxo = 1;
+
+    // Sem saltos: as instruções saem em sequência
+    if (!tem_fluxo) {
+        int n = 0;
+        for (const Instrucao *i = ini; i != fim; i = i->proximo)
+            n += emite_instrucao(out, i, nivel, ini, fim);
+        if (n == 0) { indenta(out, nivel); fputs("pass\n", out); }
+        return;
+    }
+
+    // Com saltos: máquina de estados. Cada 'if _pc == k' é um bloco. O fim de um
+    // bloco passa para o seguinte com "_pc = k+1" (os 'if' são seguidos, não 'elif',
+    // então o próximo bloco já executa na mesma volta do laço).
+    indenta(out, nivel);     fputs("_pc = 0\n", out);
+    indenta(out, nivel);     fputs("while True:\n", out);
+    indenta(out, nivel + 1); fputs("if _pc == 0:\n", out);
+
+    int bloco = 0, linhas = 0, termina = 0;
+    for (const Instrucao *i = ini; i != fim; i = i->proximo) {
+        if (i->op == OP_LABEL) {
+            if (!termina) {                       // cai no bloco seguinte
+                indenta(out, nivel + 2);
+                fprintf(out, "_pc = %d\n", bloco + 1);
+            }
+            bloco++; linhas = 0; termina = 0;
+            indenta(out, nivel + 1);
+            fprintf(out, "if _pc == %d:\n", bloco);
+            continue;
+        }
+        linhas += emite_instrucao(out, i, nivel + 2, ini, fim);
+        termina = (i->op == OP_RETURN || i->op == OP_JUMP);
+    }
+    if (linhas == 0 && !termina) { indenta(out, nivel + 2); fputs("pass\n", out); }
+    indenta(out, nivel + 1); fputs("break\n", out);   // acabou o último bloco: sai da função
+}
+
+// ---------- variáveis globais ----------
+
+static int eh_funcao(const Instrucao *lista, const char *nome) {
+    for (const Instrucao *i = lista; i != NULL; i = i->proximo)
+        if (i->op == OP_BEGIN && strcmp(i->arg1.valor.nome, nome) == 0) return 1;
+    return 0;
+}
+
+// Uma variável é global se está na tabela de símbolos no escopo 0 (e não é função).
+// Se o mesmo nome também é declarado em escopo local, é ambíguo (o TAC não diz
+// qual é qual): nesse caso tratamos como local para não sobrescrever a global.
+static int eh_global(const Instrucao *lista, const char *nome) {
+    if (tabela == NULL) return 0;
+    int global = 0;
+    for (int k = 0; k < tabela->count; k++) {
+        const Simbolo *s = tabela->simbolos[k];
+        if (strcmp(s->nome, nome) != 0) continue;
+        if (s->escopo == 0) global = 1;
+        else return 0;
+    }
+    return global && !eh_funcao(lista, nome);
+}
+
+static int ja_listado(const char *lista[], int n, const char *nome) {
+    for (int k = 0; k < n; k++)
+        if (strcmp(lista[k], nome) == 0) return 1;
+    return 0;
+}
+
+// ---------- funções e arquivo completo ----------
+
+// def nome(parametros): + corpo. 'begin' e 'fim' (o 'end') delimitam a função no TAC.
+static void emite_funcao(FILE *out, const Instrucao *lista,
+                         const Instrucao *begin, const Instrucao *fim) {
+    const char *formais[MAX_NOMES];
+    int nformais = 0;
+
+    // (formal, nome) logo após o begin: nomes dos parâmetros, na ordem
+    const Instrucao *corpo = begin->proximo;
+    while (corpo != fim && corpo->op == OP_FORMAL) {
+        if (nformais < MAX_NOMES) formais[nformais++] = corpo->arg1.valor.nome;
+        corpo = corpo->proximo;
+    }
+
+    fputs("def ", out);
+    escreve_nome(out, begin->arg1.valor.nome);
+    fputc('(', out);
+    for (int k = 0; k < nformais; k++) {
+        if (k > 0) fputs(", ", out);
+        escreve_nome(out, formais[k]);
+    }
+    fputs("):\n", out);
+
+    // 'global x' para as globais que a função atribui (sem isso o Python criaria
+    // uma variável local nova com o mesmo nome)
+    const char *globais[MAX_NOMES];
+    int nglobais = 0;
+    for (const Instrucao *i = corpo; i != fim; i = i->proximo) {
+        if ((i->op != OP_ASSIGN && i->op != OP_READ) || i->resultado.tipo != OPD_VAR) continue;
+        const char *nome = i->resultado.valor.nome;
+        if (nglobais >= MAX_NOMES || ja_listado(globais, nglobais, nome)) continue;
+        if (ja_listado(formais, nformais, nome) || !eh_global(lista, nome)) continue;
+        globais[nglobais++] = nome;
+    }
+    if (nglobais > 0) {
+        indenta(out, 1); fputs("global ", out);
+        for (int k = 0; k < nglobais; k++) {
+            if (k > 0) fputs(", ", out);
+            escreve_nome(out, globais[k]);
+        }
+        fputc('\n', out);
+    }
+
+    npendentes = 0;
+    emite_corpo(out, corpo, fim, 1);
+    fputc('\n', out);
+}
 
 static void escreve_auxiliares(FILE *out) {
     fputs(
@@ -152,33 +342,32 @@ static void escreve_auxiliares(FILE *out) {
 }
 
 void gerar_codigo_final(Instrucao *lista, FILE *saida) {
-    int nao_traduzidas = 0;
-
     escreve_auxiliares(saida);
 
-    // Funções do programa (begin ... end): tradução na parte 3
-    for (Instrucao *i = lista; i != NULL; i = i->proximo) {
-        if (i->op == OP_BEGIN)
-            fprintf(saida, "# funcao %s: traducao pendente (controle de fluxo / funcoes)\n",
-                    i->arg1.valor.nome);
+    // 1) Uma def para cada função (begin ... end), inclusive 'inicio'
+    int tem_inicio = 0;
+    for (const Instrucao *i = lista; i != NULL; i = i->proximo) {
+        if (i->op != OP_BEGIN) continue;
+        const Instrucao *fim = i->proximo;
+        while (fim != NULL && fim->op != OP_END) fim = fim->proximo;
+        if (fim == NULL) {
+            fprintf(stderr, "aviso: funcao %s sem 'end' no TAC\n", i->arg1.valor.nome);
+            break;
+        }
+        if (strcmp(i->arg1.valor.nome, "inicio") == 0) tem_inicio = 1;
+        emite_funcao(saida, lista, i, fim);
+        i = fim;
     }
 
-    // Instruções fora de begin/end: globais e corpo do inicio
-    fputs("def inicio():\n", saida);
-    int traduzidas = 0, dentro_de_funcao = 0;
-    for (Instrucao *i = lista; i != NULL; i = i->proximo) {
-        if (i->op == OP_BEGIN) { dentro_de_funcao = 1; continue; }
-        if (i->op == OP_END)   { dentro_de_funcao = 0; continue; }
-        if (dentro_de_funcao) continue;
-
-        if (emite_instrucao(saida, i)) traduzidas++;
-        else nao_traduzidas++;
+    // 2) Instruções fora de qualquer função: inicialização das variáveis globais
+    int dentro = 0;
+    npendentes = 0;
+    for (const Instrucao *i = lista; i != NULL; i = i->proximo) {
+        if (i->op == OP_BEGIN) { dentro = 1; continue; }
+        if (i->op == OP_END)   { dentro = 0; continue; }
+        if (!dentro) emite_instrucao(saida, i, 0, lista, NULL);
     }
-    if (traduzidas == 0) fputs("    pass\n", saida);   // corpo Python não pode ficar vazio
 
-    fputs("\ninicio()\n", saida);
-
-    if (nao_traduzidas > 0)
-        fprintf(stderr, "aviso: %d instrucao(oes) do TAC ainda nao traduzida(s) para Python\n",
-                nao_traduzidas);
+    // 3) Começa a execução
+    if (tem_inicio) fputs("inicio()\n", saida);
 }

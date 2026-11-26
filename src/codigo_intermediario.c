@@ -282,8 +282,13 @@ static void gera_comando(AstNode *n) {
     if (n == NULL) return;  
 
     switch (n->tipo) {
-    case NO_BLOCO:       
+    case NO_BLOCO:
+        // O único bloco aninhado na AST do programa é o corpo de 'inicio': o parser
+        // o encaixa como um item da lista do programa. Marcamos com begin/end, como
+        // uma função qualquer, para o código final separar inicio das variáveis globais.
+        emite(OP_BEGIN, opd_nome(OPD_FUNC, "inicio"), opd_inteiro(0), opd_nenhum());
         gera_bloco(n);
+        emite(OP_END, opd_nome(OPD_FUNC, "inicio"), opd_nenhum(), opd_nenhum());
         break;
 
     case NO_ATRIBUICAO:
@@ -373,6 +378,7 @@ void imprime_tac(void) {
         imprime_opd(i->arg2);     printf(", ");
         imprime_opd(i->resultado); printf(")\n");
     }
+    printf("\n");   // linha em branco marca o fim do TAC (o test-tac do Makefile depende dela)
 }
 
 static Instrucao *remove_instrucao(Instrucao *ant, Instrucao *atual) {

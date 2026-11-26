@@ -583,6 +583,10 @@ int main(int argc, char *argv[]) {
     if (resultado == 0) {
         printf("\n\n Parse concluído com sucesso!\n");
 
+        if(qtd_erros == 0){
+            raiz_ast = otimizar_ast(raiz_ast);
+        }
+
         if(exibir_ast && qtd_erros == 0){
             printf("\n = = = AST = = =\n");
             ast_imprimir(raiz_ast, 0);
@@ -590,6 +594,7 @@ int main(int argc, char *argv[]) {
 
         if(qtd_erros == 0){
             gera_codigo(raiz_ast);
+            otimiza_tac();
             imprime_tac();
         }
     } else {

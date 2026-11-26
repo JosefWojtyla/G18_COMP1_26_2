@@ -2,7 +2,6 @@
 (<=, n, 1, t0)
 (ifFalse, t0, -, L0)
 (return, n, -, -)
-(goto, -, -, L1)
 (label, -, -, L0)
 (-, n, 1, t1)
 (param, t1, -, -)

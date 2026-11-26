@@ -505,3 +505,172 @@ void ast_imprimir(AstNode *no, int nivel){
 void ast_liberar(AstNode *raiz) {
     liberar_ast(raiz);
 }
+static int eh_zero(AstNode *n) {
+    if (n == NULL) return 0;
+    return (n->tipo == NO_INTEIRO && n->dados.inteiro.valor == 0) ||
+           (n->tipo == NO_REAL && n->dados.real.valor == 0.0f);
+}
+
+static int eh_um(AstNode *n) {
+    if (n == NULL) return 0;
+    return (n->tipo == NO_INTEIRO && n->dados.inteiro.valor == 1) ||
+           (n->tipo == NO_REAL && n->dados.real.valor == 1.0f);
+}
+
+static int tem_chamada(AstNode *n) {
+    if (n == NULL) return 0;
+    if (n->tipo == NO_CHAMADA) return 1;
+    if (n->tipo == NO_OP_BINARIA)
+        return tem_chamada(n->dados.op_binaria.esq) || tem_chamada(n->dados.op_binaria.dir);
+    return 0;
+}
+
+static AstNode *substituir_por_filho(AstNode *no, AstNode *manter, AstNode *descartar) {
+    liberar_ast(descartar);
+    free(no->dados.op_binaria.op);
+    free(no);
+    return manter;
+}
+
+AstNode *otimizar_ast(AstNode *no) {
+    if (no == NULL) return NULL;
+
+    switch (no->tipo) {
+        case NO_BLOCO:
+            no->dados.bloco.comando = otimizar_ast(no->dados.bloco.comando);
+            no->dados.bloco.proximo = otimizar_ast(no->dados.bloco.proximo);
+            return no;
+
+        case NO_ATRIBUICAO:
+            no->dados.atribuicao.expressao = otimizar_ast(no->dados.atribuicao.expressao);
+            return no;
+
+        case NO_ESCREVA:
+            no->dados.escreva.expressao = otimizar_ast(no->dados.escreva.expressao);
+            return no;
+
+        case NO_RETORNE:
+            no->dados.retorne.expressao = otimizar_ast(no->dados.retorne.expressao);
+            return no;
+
+        case NO_SE:
+            no->dados.se.condicao = otimizar_ast(no->dados.se.condicao);
+            no->dados.se.entao = otimizar_ast(no->dados.se.entao);
+            no->dados.se.senao = otimizar_ast(no->dados.se.senao);
+            return no;
+
+        case NO_ENQUANTO:
+            no->dados.enquanto.condicao = otimizar_ast(no->dados.enquanto.condicao);
+            no->dados.enquanto.entao = otimizar_ast(no->dados.enquanto.entao);
+            return no;
+
+        case NO_PARA:
+            no->dados.para.inicializa = otimizar_ast(no->dados.para.inicializa);
+            no->dados.para.condicao = otimizar_ast(no->dados.para.condicao);
+            no->dados.para.passo = otimizar_ast(no->dados.para.passo);
+            no->dados.para.entao = otimizar_ast(no->dados.para.entao);
+            return no;
+
+        case NO_FUNCAO:
+            no->dados.funcao.corpo = otimizar_ast(no->dados.funcao.corpo);
+            return no;
+
+        case NO_CHAMADA:
+            no->dados.chamada.argumentos = otimizar_ast(no->dados.chamada.argumentos);
+            return no;
+
+        case NO_OP_BINARIA: {
+            no->dados.op_binaria.esq = otimizar_ast(no->dados.op_binaria.esq);
+            no->dados.op_binaria.dir = otimizar_ast(no->dados.op_binaria.dir);
+
+            AstNode *esq = no->dados.op_binaria.esq;
+            AstNode *dir = no->dados.op_binaria.dir;
+            const char *op = no->dados.op_binaria.op;
+
+            // Operador unário 'nao' (esq == NULL)
+            if (esq == NULL) {
+                if (strcmp(op, "nao") == 0 && dir && dir->tipo == NO_LOGICO) {
+                    AstNode *novo = criar_no_logico(!dir->dados.logico.valor, no->linha);
+                    liberar_ast(no);
+                    return novo;
+                }
+                return no;
+            }
+
+            // 1. Dobragem de constantes: inteiro com inteiro
+            if (esq->tipo == NO_INTEIRO && dir->tipo == NO_INTEIRO) {
+                int a = esq->dados.inteiro.valor;
+                int b = dir->dados.inteiro.valor;
+                AstNode *novo = NULL;
+
+                if (strcmp(op, "+") == 0) novo = criar_no_inteiro(a + b, no->linha);
+                else if (strcmp(op, "-") == 0) novo = criar_no_inteiro(a - b, no->linha);
+                else if (strcmp(op, "*") == 0) novo = criar_no_inteiro(a * b, no->linha);
+                else if (strcmp(op, "/") == 0 && b != 0) novo = criar_no_inteiro(a / b, no->linha);
+                else if (strcmp(op, "%") == 0 && b != 0) novo = criar_no_inteiro(a % b, no->linha);
+                else if (strcmp(op, "==") == 0) novo = criar_no_logico(a == b, no->linha);
+                else if (strcmp(op, "!=") == 0) novo = criar_no_logico(a != b, no->linha);
+                else if (strcmp(op, "<") == 0)  novo = criar_no_logico(a < b, no->linha);
+                else if (strcmp(op, ">") == 0)  novo = criar_no_logico(a > b, no->linha);
+                else if (strcmp(op, "<=") == 0) novo = criar_no_logico(a <= b, no->linha);
+                else if (strcmp(op, ">=") == 0) novo = criar_no_logico(a >= b, no->linha);
+
+                if (novo != NULL) {
+                    liberar_ast(no);
+                    return novo;
+                }
+            }
+
+            if ((esq->tipo == NO_INTEIRO || esq->tipo == NO_REAL) &&
+                (dir->tipo == NO_INTEIRO || dir->tipo == NO_REAL)) {
+                float a = (esq->tipo == NO_REAL) ? esq->dados.real.valor : (float)esq->dados.inteiro.valor;
+                float b = (dir->tipo == NO_REAL) ? dir->dados.real.valor : (float)dir->dados.inteiro.valor;
+                AstNode *novo = NULL;
+
+                if (strcmp(op, "+") == 0) novo = criar_no_real(a + b, no->linha);
+                else if (strcmp(op, "-") == 0) novo = criar_no_real(a - b, no->linha);
+                else if (strcmp(op, "*") == 0) novo = criar_no_real(a * b, no->linha);
+                else if (strcmp(op, "/") == 0 && b != 0.0f) novo = criar_no_real(a / b, no->linha);
+
+                if (novo != NULL) {
+                    liberar_ast(no);
+                    return novo;
+                }
+            }
+
+            if (esq->tipo == NO_LOGICO && dir->tipo == NO_LOGICO) {
+                int a = esq->dados.logico.valor;
+                int b = dir->dados.logico.valor;
+                AstNode *novo = NULL;
+
+                if (strcmp(op, "e") == 0)       novo = criar_no_logico(a && b, no->linha);
+                else if (strcmp(op, "ou") == 0) novo = criar_no_logico(a || b, no->linha);
+
+                if (novo != NULL) {
+                    liberar_ast(no);
+                    return novo;
+                }
+            }
+
+            // 4. Identidades algébricas simples: x + 0, 0 + x, x - 0, x * 1, 1 * x, x / 1, x * 0, 0 * x
+            if (strcmp(op, "+") == 0) {
+                if (eh_zero(dir)) return substituir_por_filho(no, esq, dir); // x + 0 -> x
+                if (eh_zero(esq)) return substituir_por_filho(no, dir, esq); // 0 + x -> x
+            } else if (strcmp(op, "-") == 0) {
+                if (eh_zero(dir)) return substituir_por_filho(no, esq, dir); // x - 0 -> x
+            } else if (strcmp(op, "*") == 0) {
+                if (eh_um(dir))   return substituir_por_filho(no, esq, dir); // x * 1 -> x
+                if (eh_um(esq))   return substituir_por_filho(no, dir, esq); // 1 * x -> x
+                if (eh_zero(dir) && !tem_chamada(esq)) return substituir_por_filho(no, dir, esq); // x * 0 -> 0
+                if (eh_zero(esq) && !tem_chamada(dir)) return substituir_por_filho(no, esq, dir); // 0 * x -> 0
+            } else if (strcmp(op, "/") == 0) {
+                if (eh_um(dir))   return substituir_por_filho(no, esq, dir); // x / 1 -> x
+            }
+
+            return no;
+        }
+
+        default:
+            return no;
+    }
+}

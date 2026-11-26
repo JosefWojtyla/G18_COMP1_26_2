@@ -1,4 +1,5 @@
 (begin, dobro, 1, -)
+(formal, x, -, -)
 (*, x, 2, t0)
 (return, t0, -, -)
 (end, dobro, -, -)

@@ -78,7 +78,7 @@ test-tac: $(TARGET)
 	@pass=0; fail=0; echo ""; echo "-- Testes de codigo intermediario (TAC) --"; \
 	for f in $(TEST_DIR)/tac/*.pt; do \
 		printf "  %-40s " "$$f"; \
-		if ./$(TARGET) $$f 2>/dev/null | sed -n '/Código de três/,/^$$/p' | sed '1d;$$d' | diff -q --strip-trailing-cr - $${f%.pt}.tac > /dev/null; then \
+		if ./$(TARGET) --tac $$f 2>/dev/null | sed -n '/Código de três/,/^$$/p' | sed '1d;$$d' | diff -q --strip-trailing-cr - $${f%.pt}.tac > /dev/null; then \
 			echo "[PASS]"; pass=$$((pass+1)); \
 		else echo "[FAIL] <- TAC diferente do esperado"; fail=$$((fail+1)); fi; \
 	done; echo "  Resultado TAC: $$pass PASS | $$fail FAIL"; [ $$fail -eq 0 ]
@@ -100,7 +100,7 @@ test: test-base test-sem test-tac
 # -------------------------------------------------------
 # 5) Rodar um arquivo especifico com saida visivel
 run: $(TARGET)
-	./$(TARGET) $(FILE)
+	./$(TARGET) --tac --simbolos $(FILE)
 
 # -------------------------------------------------------
 # 6) Limpeza

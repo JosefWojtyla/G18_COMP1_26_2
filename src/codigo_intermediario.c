@@ -19,7 +19,8 @@ typedef enum {
     OP_JUMP_IF_NOT_ZERO,
     OP_LABEL,
     OP_BEGIN, OP_END, OP_PARAM, OP_CALL, OP_RETURN,
-    OP_WRITE, OP_READ
+    OP_WRITE, OP_READ,
+    OP_FORMAL   // nome de um parâmetro formal, emitido logo após o begin da função
 } OPCode;
 
 typedef enum {
@@ -303,6 +304,13 @@ static void gera_para(AstNode *n) {
 static void gera_funcao(AstNode *n) {
     int qtd = conta_lista(n->dados.funcao.parametros);
     emite(OP_BEGIN, opd_nome(OPD_FUNC, n->dados.funcao.nome), opd_inteiro(qtd), opd_nenhum());
+
+    // um (formal, nome) por parâmetro, na ordem da declaração: o código final
+    // usa essas linhas para montar o cabeçalho da função
+    for (AstNode *p = n->dados.funcao.parametros; p != NULL; p = p->dados.bloco.proximo)
+        emite(OP_FORMAL, opd_nome(OPD_VAR, p->dados.bloco.comando->dados.parametro.nome),
+              opd_nenhum(), opd_nenhum());
+
     gera_bloco(n->dados.funcao.corpo);
     emite(OP_END, opd_nome(OPD_FUNC, n->dados.funcao.nome), opd_nenhum(), opd_nenhum());
 }
@@ -377,6 +385,7 @@ static const char *nome_opcode(OPCode op) {
     case OP_PARAM:  return "param";  case OP_CALL:   return "call";
     case OP_RETURN: return "return";
     case OP_WRITE:  return "write";  case OP_READ:   return "read";
+    case OP_FORMAL: return "formal";
     }
     return "?";
 }

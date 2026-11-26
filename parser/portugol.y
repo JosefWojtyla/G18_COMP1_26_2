@@ -551,12 +551,18 @@ int main(int argc, char *argv[]) {
     criarTabelaSimbolos(tabela);
 
     int exibir_ast = 0;
+    int exibir_tac = 0;
+    int exibir_simbolos = 0;
     char *caminho_arquivo = NULL;
 
     // Percorre os argumentos procurando "--ast" ou o nome do arquivo
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--ast") == 0) {
             exibir_ast = 1;
+        } else if (strcmp(argv[i], "--tac") == 0) {
+            exibir_tac = 1;
+        } else if (strcmp(argv[i], "--simbolos") == 0) {
+            exibir_simbolos = 1;
         } else {
             caminho_arquivo = argv[i];
         }
@@ -576,12 +582,10 @@ int main(int argc, char *argv[]) {
         yyin = stdin;
     }
 
-    printf("=== PARSER PORTUGOL STUDIO UNIVALI ===\n\n");
 
     int resultado = yyparse();
 
     if (resultado == 0) {
-        printf("\n\n Parse concluído com sucesso!\n");
 
         if(qtd_erros == 0){
             raiz_ast = otimizar_ast(raiz_ast);
@@ -595,14 +599,17 @@ int main(int argc, char *argv[]) {
         if(qtd_erros == 0){
             gera_codigo(raiz_ast);
             otimiza_tac();
-            imprime_tac();
+            if(exibir_tac) imprime_tac();
         }
     } else {
-        printf("\n\n Erros encontrados durante o parse.\n");
+        fprintf(stderr, "Erros encontrados durante o parse.\n");
     }
 
     if (caminho_arquivo != NULL) {
         fclose(yyin);
+    }
+
+    if (exibir_simbolos) {
         printf("\n = = = Tabela de Simbolos = = =\n");
 
         for(int i = 0; i < tabela->count; i++){

@@ -37,8 +37,8 @@ $(FLEX_SRC): $(LEXER_DIR)/portugol.l $(BISON_HDR)
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(TARGET): $(FLEX_SRC) $(BISON_SRC) src/ast.c src/simbolos.c src/semantica.c src/codigo_intermediario.c | $(BUILD_DIR)
-	$(CC) -Wall -Isrc -o $@ $(FLEX_SRC) $(BISON_SRC) src/simbolos.c src/ast.c src/semantica.c src/codigo_intermediario.c
+$(TARGET): $(FLEX_SRC) $(BISON_SRC) src/ast.c src/simbolos.c src/semantica.c src/codigo_intermediario.c src/codigo_final.c | $(BUILD_DIR)
+	$(CC) -Wall -Isrc -o $@ $(FLEX_SRC) $(BISON_SRC) src/simbolos.c src/ast.c src/semantica.c src/codigo_intermediario.c src/codigo_final.c
 
 # -------------------------------------------------------
 # 4) Executar todos os testes
@@ -78,7 +78,7 @@ test-tac: $(TARGET)
 	@pass=0; fail=0; echo ""; echo "-- Testes de codigo intermediario (TAC) --"; \
 	for f in $(TEST_DIR)/tac/*.pt; do \
 		printf "  %-40s " "$$f"; \
-		if ./$(TARGET) --tac $$f 2>/dev/null | sed -n '/Código de três/,/^$$/p' | sed '1d;$$d' | diff -q --strip-trailing-cr - $${f%.pt}.tac > /dev/null; then \
+		if ./$(TARGET) --tac -o /dev/null $$f 2>/dev/null | sed -n '/Código de três/,/^$$/p' | sed '1d;$$d' | diff -q --strip-trailing-cr - $${f%.pt}.tac > /dev/null; then \
 			echo "[PASS]"; pass=$$((pass+1)); \
 		else echo "[FAIL] <- TAC diferente do esperado"; fail=$$((fail+1)); fi; \
 	done; echo "  Resultado TAC: $$pass PASS | $$fail FAIL"; [ $$fail -eq 0 ]

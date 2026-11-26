@@ -6,6 +6,8 @@
 #include <string.h>
 #include "../src/simbolos.h"
 #include "../src/ast.h"
+#include "../src/codigo_intermediario.h"
+#include "../src/codigo_final.h"
 
 AstNode *raiz_ast = NULL; 
 
@@ -554,6 +556,7 @@ int main(int argc, char *argv[]) {
     int exibir_tac = 0;
     int exibir_simbolos = 0;
     char *caminho_arquivo = NULL;
+    char *caminho_saida = NULL;     // arquivo .py gerado (-o); sem -o vai para stdout
 
     // Percorre os argumentos procurando "--ast" ou o nome do arquivo
     for (int i = 1; i < argc; i++) {
@@ -563,6 +566,8 @@ int main(int argc, char *argv[]) {
             exibir_tac = 1;
         } else if (strcmp(argv[i], "--simbolos") == 0) {
             exibir_simbolos = 1;
+        } else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
+            caminho_saida = argv[++i];
         } else {
             caminho_arquivo = argv[i];
         }
@@ -600,6 +605,20 @@ int main(int argc, char *argv[]) {
             gera_codigo(raiz_ast);
             otimiza_tac();
             if(exibir_tac) imprime_tac();
+
+            // código final: Python no arquivo do -o, ou em stdout
+            FILE *saida = stdout;
+            if (caminho_saida != NULL) {
+                saida = fopen(caminho_saida, "w");
+                if (!saida) {
+                    perror("Erro ao abrir arquivo de saida");
+                    qtd_erros++;
+                }
+            }
+            if (saida) {
+                gerar_codigo_final(obtem_tac(), saida);
+                if (saida != stdout) fclose(saida);
+            }
         }
     } else {
         fprintf(stderr, "Erros encontrados durante o parse.\n");

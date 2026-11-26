@@ -5,50 +5,14 @@
 #include <string.h>
 #include "ast.h"
 
-typedef enum {
-    OP_ADD,
-    OP_SUB,
-    OP_MUL,
-    OP_DIV,
-    OP_MOD,
-    OP_EQ, OP_NE, OP_LT, OP_GT, OP_LE, OP_GE,
-    OP_AND, OP_OR, OP_NOT,
-    OP_ASSIGN,
-    OP_JUMP,
-    OP_JUMP_IF_ZERO,
-    OP_JUMP_IF_NOT_ZERO,
-    OP_LABEL,
-    OP_BEGIN, OP_END, OP_PARAM, OP_CALL, OP_RETURN,
-    OP_WRITE, OP_READ
-} OPCode;
-
-typedef enum {
-    OPD_NENHUM,
-    OPD_CONST_INT,
-    OPD_CONST_REAL,
-    OPD_CONST_STRING,
-    OPD_VAR,
-    OPD_TEMP,
-    OPD_ROTULO,
-    OPD_FUNC,
-} TipoOPD;
-
-typedef struct {
-    TipoOPD tipo;
-    union {
-        char *nome;
-        long inteiro;
-        double real;
-    } valor;
-} Operando;
-
-typedef struct Instrucao{
-    OPCode op;
-    Operando arg1,arg2,resultado;
-    struct Instrucao *proximo;
-} Instrucao; //lista encadeada de instruções
+#include "codigo_intermediario.h"
 
 static Instrucao *primeira = NULL, *ultima = NULL;
+
+Instrucao *obtem_tac(void) {
+    return primeira;
+}
+
 static int contador_temp = 0, contador_rotulo = 0;
 
 // contrutores
@@ -303,6 +267,13 @@ static void gera_para(AstNode *n) {
 static void gera_funcao(AstNode *n) {
     int qtd = conta_lista(n->dados.funcao.parametros);
     emite(OP_BEGIN, opd_nome(OPD_FUNC, n->dados.funcao.nome), opd_inteiro(qtd), opd_nenhum());
+
+    // um (formal, nome) por parâmetro, na ordem da declaração: o código final
+    // usa essas linhas para montar o cabeçalho da função
+    for (AstNode *p = n->dados.funcao.parametros; p != NULL; p = p->dados.bloco.proximo)
+        emite(OP_FORMAL, opd_nome(OPD_VAR, p->dados.bloco.comando->dados.parametro.nome),
+              opd_nenhum(), opd_nenhum());
+
     gera_bloco(n->dados.funcao.corpo);
     emite(OP_END, opd_nome(OPD_FUNC, n->dados.funcao.nome), opd_nenhum(), opd_nenhum());
 }
@@ -311,8 +282,13 @@ static void gera_comando(AstNode *n) {
     if (n == NULL) return;  
 
     switch (n->tipo) {
-    case NO_BLOCO:       
+    case NO_BLOCO:
+        // O único bloco aninhado na AST do programa é o corpo de 'inicio': o parser
+        // o encaixa como um item da lista do programa. Marcamos com begin/end, como
+        // uma função qualquer, para o código final separar inicio das variáveis globais.
+        emite(OP_BEGIN, opd_nome(OPD_FUNC, "inicio"), opd_inteiro(0), opd_nenhum());
         gera_bloco(n);
+        emite(OP_END, opd_nome(OPD_FUNC, "inicio"), opd_nenhum(), opd_nenhum());
         break;
 
     case NO_ATRIBUICAO:
@@ -377,30 +353,32 @@ static const char *nome_opcode(OPCode op) {
     case OP_PARAM:  return "param";  case OP_CALL:   return "call";
     case OP_RETURN: return "return";
     case OP_WRITE:  return "write";  case OP_READ:   return "read";
+    case OP_FORMAL: return "formal";
     }
     return "?";
 }
  
 static void imprime_opd(Operando o) {
     switch (o.tipo) {
-    case OPD_NENHUM:        printf("-"); break;
-    case OPD_CONST_INT:     printf("%ld", o.valor.inteiro); break;
-    case OPD_CONST_REAL:    printf("%g", o.valor.real); break;
-    case OPD_CONST_STRING:  printf("%s", o.valor.nome); break;   /* o lexer já guarda as aspas */
-    default:                printf("%s", o.valor.nome); break;
+    case OPD_NENHUM:        fprintf(stderr, "-"); break;
+    case OPD_CONST_INT:     fprintf(stderr, "%ld", o.valor.inteiro); break;
+    case OPD_CONST_REAL:    fprintf(stderr, "%g", o.valor.real); break;
+    case OPD_CONST_STRING:  fprintf(stderr, "%s", o.valor.nome); break;   /* o lexer já guarda as aspas */
+    default:                fprintf(stderr, "%s", o.valor.nome); break;
     }
 }
 
 
 
 void imprime_tac(void) {
-    printf("\n= = = Código de três endereços = = =\n");
+    fprintf(stderr, "\n= = = Código de três endereços = = =\n");
     for (Instrucao *i = primeira; i != NULL; i = i->proximo) {
-        printf("(%s, ", nome_opcode(i->op));
-        imprime_opd(i->arg1);     printf(", ");
-        imprime_opd(i->arg2);     printf(", ");
-        imprime_opd(i->resultado); printf(")\n");
+        fprintf(stderr, "(%s, ", nome_opcode(i->op));
+        imprime_opd(i->arg1);     fprintf(stderr, ", ");
+        imprime_opd(i->arg2);     fprintf(stderr, ", ");
+        imprime_opd(i->resultado); fprintf(stderr, ")\n");
     }
+    fprintf(stderr, "\n");   // linha em branco marca o fim do TAC (o test-tac do Makefile depende dela)
 }
 
 static Instrucao *remove_instrucao(Instrucao *ant, Instrucao *atual) {
@@ -471,4 +449,4 @@ void otimiza_tac(void) {
     do {
         mudou = remove_inalcancavel() + remove_temps_mortos();
     } while (mudou);
-}
+}

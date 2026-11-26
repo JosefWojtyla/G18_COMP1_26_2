@@ -6,6 +6,8 @@
 #include <string.h>
 #include "../src/simbolos.h"
 #include "../src/ast.h"
+#include "../src/codigo_intermediario.h"
+#include "../src/codigo_final.h"
 
 AstNode *raiz_ast = NULL; 
 
@@ -551,12 +553,21 @@ int main(int argc, char *argv[]) {
     criarTabelaSimbolos(tabela);
 
     int exibir_ast = 0;
+    int exibir_tac = 0;
+    int exibir_simbolos = 0;
     char *caminho_arquivo = NULL;
+    char *caminho_saida = NULL;     // arquivo .py gerado (-o); sem -o vai para stdout
 
     // Percorre os argumentos procurando "--ast" ou o nome do arquivo
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--ast") == 0) {
             exibir_ast = 1;
+        } else if (strcmp(argv[i], "--tac") == 0) {
+            exibir_tac = 1;
+        } else if (strcmp(argv[i], "--simbolos") == 0) {
+            exibir_simbolos = 1;
+        } else if (strcmp(argv[i], "-o") == 0 && i + 1 < argc) {
+            caminho_saida = argv[++i];
         } else {
             caminho_arquivo = argv[i];
         }
@@ -576,37 +587,52 @@ int main(int argc, char *argv[]) {
         yyin = stdin;
     }
 
-    printf("=== PARSER PORTUGOL STUDIO UNIVALI ===\n\n");
 
     int resultado = yyparse();
 
     if (resultado == 0) {
-        printf("\n\n Parse concluído com sucesso!\n");
 
         if(qtd_erros == 0){
             raiz_ast = otimizar_ast(raiz_ast);
         }
 
         if(exibir_ast && qtd_erros == 0){
-            printf("\n = = = AST = = =\n");
+            fprintf(stderr, "\n = = = AST = = =\n");
             ast_imprimir(raiz_ast, 0);
         }
 
         if(qtd_erros == 0){
             gera_codigo(raiz_ast);
             otimiza_tac();
-            imprime_tac();
+            if(exibir_tac) imprime_tac();
+
+            // código final: Python no arquivo do -o, ou em stdout
+            FILE *saida = stdout;
+            if (caminho_saida != NULL) {
+                saida = fopen(caminho_saida, "w");
+                if (!saida) {
+                    perror("Erro ao abrir arquivo de saida");
+                    qtd_erros++;
+                }
+            }
+            if (saida) {
+                gerar_codigo_final(obtem_tac(), saida);
+                if (saida != stdout) fclose(saida);
+            }
         }
     } else {
-        printf("\n\n Erros encontrados durante o parse.\n");
+        fprintf(stderr, "Erros encontrados durante o parse.\n");
     }
 
     if (caminho_arquivo != NULL) {
         fclose(yyin);
-        printf("\n = = = Tabela de Simbolos = = =\n");
+    }
+
+    if (exibir_simbolos) {
+        fprintf(stderr, "\n = = = Tabela de Simbolos = = =\n");
 
         for(int i = 0; i < tabela->count; i++){
-            printf("Nome: %-10s | Tipo: %-8s | Escopo: %d | Linha: %d | Inicializado: %d\n",
+            fprintf(stderr, "Nome: %-10s | Tipo: %-8s | Escopo: %d | Linha: %d | Inicializado: %d\n",
             tabela->simbolos[i]->nome,
             tabela->simbolos[i]->tipo,
             tabela->simbolos[i]->escopo,

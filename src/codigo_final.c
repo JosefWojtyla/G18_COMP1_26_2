@@ -4,7 +4,7 @@
 //   (+, a, b, t0)    ->  t0 = a + b
 //   (=, t0, -, x)    ->  x = t0
 //   (write, x, -, -) ->  print(x)
-//   (read, -, -, x)  ->  x = _ler()
+//   (read, -, -, x)  ->  x = int(input()) / float(input()) / input(), pelo tipo de x
 //
 // Estrutura do arquivo gerado:
 //   1. funções auxiliares fixas (_ler e _div)
@@ -106,6 +106,19 @@ static int eh_real(Operando o) {
     return t != NULL && strcmp(t, "real") == 0;
 }
 
+// Expressão Python que lê uma linha e converte pelo tipo declarado do destino.
+// Tipo desconhecido ou ambíguo: _ler() deduz o tipo pelo texto digitado.
+static const char *leitura_por_tipo(Operando destino) {
+    const char *t = (destino.tipo == OPD_VAR) ? tipo_variavel(destino.valor.nome) : NULL;
+    if (t == NULL)                    return "_ler()";
+    if (strcmp(t, "inteiro") == 0)    return "int(input())";
+    if (strcmp(t, "real") == 0)       return "float(input())";
+    if (strcmp(t, "cadeia") == 0 ||
+        strcmp(t, "caractere") == 0)  return "input()";
+    if (strcmp(t, "logico") == 0)     return "int(input().strip() == \"verdadeiro\")";
+    return "_ler()";
+}
+
 // Símbolo da função (escopo 0): guarda o tipo de retorno e a lista de parâmetros
 static const Simbolo *simbolo_funcao(const char *nome) {
     if (tabela == NULL) return NULL;
@@ -193,10 +206,11 @@ static int emite_instrucao(FILE *out, const Instrucao *i, int nivel,
         indenta(out, nivel); fputs("print(", out);
         escreve_opd(out, i->arg1); fputs(")\n", out);
         return 1;
-    case OP_READ:                                       // x = _ler()  (x real: float(_ler()))
+    case OP_READ:                                       // x = int(input()), float(input()), ...
         indenta(out, nivel);
         escreve_opd(out, i->resultado); fputs(" = ", out);
-        fputs(eh_real(i->resultado) ? "float(_ler())\n" : "_ler()\n", out);
+        fputs(leitura_por_tipo(i->resultado), out);
+        fputc('\n', out);
         return 1;
 
     case OP_PARAM:                                      // guarda o argumento até o call

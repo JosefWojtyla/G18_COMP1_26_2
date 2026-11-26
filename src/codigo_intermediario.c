@@ -360,25 +360,25 @@ static const char *nome_opcode(OPCode op) {
  
 static void imprime_opd(Operando o) {
     switch (o.tipo) {
-    case OPD_NENHUM:        printf("-"); break;
-    case OPD_CONST_INT:     printf("%ld", o.valor.inteiro); break;
-    case OPD_CONST_REAL:    printf("%g", o.valor.real); break;
-    case OPD_CONST_STRING:  printf("%s", o.valor.nome); break;   /* o lexer já guarda as aspas */
-    default:                printf("%s", o.valor.nome); break;
+    case OPD_NENHUM:        fprintf(stderr, "-"); break;
+    case OPD_CONST_INT:     fprintf(stderr, "%ld", o.valor.inteiro); break;
+    case OPD_CONST_REAL:    fprintf(stderr, "%g", o.valor.real); break;
+    case OPD_CONST_STRING:  fprintf(stderr, "%s", o.valor.nome); break;   /* o lexer já guarda as aspas */
+    default:                fprintf(stderr, "%s", o.valor.nome); break;
     }
 }
 
 
 
 void imprime_tac(void) {
-    printf("\n= = = Código de três endereços = = =\n");
+    fprintf(stderr, "\n= = = Código de três endereços = = =\n");
     for (Instrucao *i = primeira; i != NULL; i = i->proximo) {
-        printf("(%s, ", nome_opcode(i->op));
-        imprime_opd(i->arg1);     printf(", ");
-        imprime_opd(i->arg2);     printf(", ");
-        imprime_opd(i->resultado); printf(")\n");
+        fprintf(stderr, "(%s, ", nome_opcode(i->op));
+        imprime_opd(i->arg1);     fprintf(stderr, ", ");
+        imprime_opd(i->arg2);     fprintf(stderr, ", ");
+        imprime_opd(i->resultado); fprintf(stderr, ")\n");
     }
-    printf("\n");   // linha em branco marca o fim do TAC (o test-tac do Makefile depende dela)
+    fprintf(stderr, "\n");   // linha em branco marca o fim do TAC (o test-tac do Makefile depende dela)
 }
 
 static Instrucao *remove_instrucao(Instrucao *ant, Instrucao *atual) {

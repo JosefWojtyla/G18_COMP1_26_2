@@ -597,7 +597,7 @@ int main(int argc, char *argv[]) {
         }
 
         if(exibir_ast && qtd_erros == 0){
-            printf("\n = = = AST = = =\n");
+            fprintf(stderr, "\n = = = AST = = =\n");
             ast_imprimir(raiz_ast, 0);
         }
 
@@ -629,10 +629,10 @@ int main(int argc, char *argv[]) {
     }
 
     if (exibir_simbolos) {
-        printf("\n = = = Tabela de Simbolos = = =\n");
+        fprintf(stderr, "\n = = = Tabela de Simbolos = = =\n");
 
         for(int i = 0; i < tabela->count; i++){
-            printf("Nome: %-10s | Tipo: %-8s | Escopo: %d | Linha: %d | Inicializado: %d\n",
+            fprintf(stderr, "Nome: %-10s | Tipo: %-8s | Escopo: %d | Linha: %d | Inicializado: %d\n",
             tabela->simbolos[i]->nome,
             tabela->simbolos[i]->tipo,
             tabela->simbolos[i]->escopo,

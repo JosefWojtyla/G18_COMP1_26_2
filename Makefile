@@ -16,7 +16,7 @@ TARGET = $(BUILD_DIR)/portugol
 
 # -------------------------------------------------------
 # Alvo padrão
-.PHONY: all clean test test-base test-tac test-sem help
+.PHONY: run debug all clean test test-base test-tac test-sem help
 
 all: $(TARGET)
 
@@ -98,8 +98,15 @@ test-sem: $(TARGET)
 test: test-base test-sem test-tac
 
 # -------------------------------------------------------
-# 5) Rodar um arquivo especifico com saida visivel
+# 5) Rodar um arquivo especifico: gera o Python e executa
+#    uso: make run FILE=test/valid/para.pt
 run: $(TARGET)
+	./$(TARGET) $(FILE) -o /tmp/saida_portugol.py
+	python3 /tmp/saida_portugol.py
+
+# 5b) Depuracao: mostra TAC, tabela de simbolos e o Python gerado
+#    uso: make debug FILE=test/valid/para.pt
+debug: $(TARGET)
 	./$(TARGET) --tac --simbolos $(FILE)
 
 # -------------------------------------------------------

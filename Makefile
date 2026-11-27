@@ -101,8 +101,8 @@ test: test-base test-sem test-tac
 # 5) Rodar um arquivo especifico: gera o Python e executa
 #    uso: make run FILE=test/valid/para.pt
 run: $(TARGET)
-	./$(TARGET) $(FILE) -o /tmp/saida_portugol.py
-	python3 /tmp/saida_portugol.py
+	./$(TARGET) $(FILE) -o $(BUILD_DIR)/saida.py
+	python3 $(BUILD_DIR)/saida.py
 
 # 5b) Depuracao: mostra TAC, tabela de simbolos e o Python gerado
 #    uso: make debug FILE=test/valid/para.pt

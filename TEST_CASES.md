@@ -68,10 +68,6 @@ Todos os casos não relacionados a vetores possuem arquivo `.out` correspondente
 | **TC-V19** | `teste_08_bloco_vazio.pt` | Função `inicio()` com corpo vazio | — | *(vazio)* |
 | **TC-V20** | `teste_09_funcao_parametro.pt` | Passagem de parâmetros para `somar(5, 3)` | — | `8` |
 | **TC-V21** | `teste_11_para_incremento.pt` | Laço `para` de `0` a `9` com declaração no cabeçalho | — | `0` .. `9` (1 por linha) |
-| **TC-V22** | `teste_10_vetores.pt` | Declaração em lote de vetores *(sem E2E: fora de escopo no TAC)* | — | — |
-| **TC-V23** | `vetor.pt` | Declaração, escrita e leitura `numero[0]` *(sem E2E)* | — | — |
-| **TC-V24** | `vetor_acesso.pt` | Atribuição posicional e `escreva(numero[0])` *(sem E2E)* | — | — |
-| **TC-V25** | `vetor_declaracao.pt` | Declaração de vetores de tipos variados *(sem E2E)* | — | — |
 
 ---
 
@@ -124,4 +120,4 @@ Cada `.pt` possui um golden file `.tac` comparado via `diff` (`make test-tac`).
 | **TC-T06** | `tac06_codigo_morto.pt` | Remoção de código inalcançável pós-`retorne` (golden `.antes.tac` vs `.tac`) |
 | **TC-T07** | `tac07_simplificacao.pt` | Dobragem de constantes e identidades algébricas (`x + 0`, `x * 1`, `x * 0`, etc.) |
 
-Limitação conhecida: acesso e atribuição a vetor (`v[i]`) não geram nós na AST nem instruções no TAC ou código Python; por isso os 4 casos de vetor ficam apenas em `test-base` (sem `.tac` nem `.out` em `test/e2e/`).
+Limitação conhecida: vetores (`v[i]`) estão fora do escopo do gerador de TAC e do código Python; por isso não possuem golden files em `test/tac/` ou `test/e2e/`.

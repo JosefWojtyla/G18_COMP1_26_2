@@ -97,7 +97,7 @@ Resultado atual: **66 casos, 66 PASS** (31 base, 7 semânticos, 7 TAC, 21 ponta 
 
 ---
 
-## Exemplo completo
+<!-- ## Exemplo completo
 
 Entrada `test/valid/funcao_recursiva.pt`:
 
@@ -191,7 +191,7 @@ $ python3 fib.py
 
 O esquema com `_pc` existe porque Python não tem `goto`; ele está explicado em [código final](docs/compilador/codigo-final.md).
 
----
+--- -->
 
 ## Estrutura do repositório
 

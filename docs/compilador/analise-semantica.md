@@ -5,10 +5,10 @@
 ## 1. Posição no pipeline
 
 ```
-Léxica → Sintática (AST) → Semântica → Código intermediário (TAC)
+Léxica → Sintática (AST) → Semântica → Otimização da AST → Código intermediário (TAC) → Python
 ```
 
-A verificação ocorre durante o parse (ações do Bison), usando a tabela de símbolos com escopos (nível 0 = global, 1+ = local). Erros incrementam um contador; o compilador termina com código != 0 e **não gera TAC** se houver erro.
+A verificação ocorre durante o parse (ações do Bison), usando a tabela de símbolos com escopos (nível 0 = global, 1+ = local). Erros incrementam um contador; o compilador termina com código != 0 e **não gera TAC nem Python** se houver erro.
 
 ## 2. Verificações implementadas
 
@@ -33,9 +33,12 @@ A verificação ocorre durante o parse (ações do Bison), usando a tabela de s�
 Cada caso em `test/semantica/*.pt` tem um `.msg` com a mensagem esperada. Ver catálogo TC-S01..S07 em `TEST_CASES.md`.
 
 ```bash
-make test-sem
+make test-sem    # 7 casos, 7 PASS
+make test-base   # inclui os 10 casos de test/error/, todos rejeitados corretamente
 ```
 
 ## 5. Limitações
 
-- Acesso a vetor (`v[i]`) não possui verificação de tipo/índice na semântica nem tradução para TAC.
+- Vetores: a declaração e o acesso (`v[i]`) são aceitos pelo parser, mas não entram na AST; por isso não há verificação de tipo/índice nem tradução para TAC e Python (decisão da equipe).
+- A coluna `Linha` da tabela de símbolos pode aparecer deslocada em uma linha, porque `yylineno` é lido depois que o parser já consumiu o token seguinte. Não afeta as mensagens de erro semântico.
+- O uso de variável sem inicialização gera apenas um aviso, não um erro.

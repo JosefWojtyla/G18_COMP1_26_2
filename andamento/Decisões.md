@@ -22,3 +22,8 @@
   
   
 ### Definicçao de descrição de linguagem
+
+## Definição do código final (26/11/2026)
+- **Alvo do compilador: Python.** O pipeline é Portugol -> AST -> semântica -> TAC -> otimizações -> Python; não há etapa de assembly.
+- Motivo: o README já define Python como linguagem-alvo e dá para entregar a tempo; o Python gerado roda em qualquer máquina e permite conferir a saída dos programas nos testes ponta a ponta.
+- O código final é gerado por `src/codigo_final.c` a partir da lista de instruções do TAC. Uso: `build/portugol programa.pt -o saida.py`; sem `-o`, o Python vai para a saída padrão.

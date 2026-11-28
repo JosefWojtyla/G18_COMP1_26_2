@@ -16,7 +16,7 @@ TARGET = $(BUILD_DIR)/portugol
 
 # -------------------------------------------------------
 # Alvo padrão
-.PHONY: run debug all clean test test-base test-tac test-sem help
+.PHONY: run debug all clean test test-base test-tac test-sem test-e2e help
 
 all: $(TARGET)
 
@@ -94,8 +94,24 @@ test-sem: $(TARGET)
 		else echo "[FAIL] <- mensagem esperada nao encontrada"; fail=$$((fail+1)); fi; \
 	done; echo "  Resultado SEM: $$pass PASS | $$fail FAIL"; [ $$fail -eq 0 ]
 
-# Roda todas as suites: valid/error, semantica e TAC
-test: test-base test-sem test-tac
+# Testes ponta a ponta (E2E): compila .pt para Python, executa e compara com .out
+test-e2e: $(TARGET)
+	@pass=0; fail=0; echo ""; echo "-- Testes ponta a ponta (E2E) --"; \
+	for out in $(TEST_DIR)/e2e/*.out; do \
+		nome=$$(basename "$$out" .out); \
+		pt="$(TEST_DIR)/valid/$$nome.pt"; \
+		in="$(TEST_DIR)/e2e/$$nome.in"; \
+		[ -f "$$in" ] || in="/dev/null"; \
+		printf "  %-40s " "$$pt"; \
+		if ./$(TARGET) "$$pt" -o $(BUILD_DIR)/e2e.py 2>/dev/null \
+		   && python3 $(BUILD_DIR)/e2e.py < "$$in" > $(BUILD_DIR)/e2e.out \
+		   && diff -q --strip-trailing-cr $(BUILD_DIR)/e2e.out "$$out" > /dev/null; then \
+			echo "[PASS]"; pass=$$((pass+1)); \
+		else echo "[FAIL] <- saida diferente do esperado"; fail=$$((fail+1)); fi; \
+	done; echo "  Resultado E2E: $$pass PASS | $$fail FAIL"; [ $$fail -eq 0 ]
+
+# Roda todas as suites: valid/error, semantica, TAC e E2E
+test: test-base test-sem test-tac test-e2e
 
 # -------------------------------------------------------
 # 5) Rodar um arquivo especifico: gera o Python e executa
@@ -124,8 +140,8 @@ help:
 	@echo ""
 	@echo "Alvos disponiveis:"
 	@echo "  make          -> compila o compilador"
-	@echo "  make test     -> roda todas as suites (base, sem, tac)"
-	@echo "  make test-base/test-sem/test-tac -> roda uma suite"
+	@echo "  make test     -> roda todas as suites (base, sem, tac, e2e)"
+	@echo "  make test-base/test-sem/test-tac/test-e2e -> roda uma suite"
 	@echo "  make run FILE=test/exemplo.pt  -> roda um arquivo"
 	@echo "  make clean    -> remove arquivos gerados"
 	@echo ""
